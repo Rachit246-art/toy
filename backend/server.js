@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -8,9 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 5000;
-const JWT_SECRET = 'supersecretpigglitzkey'; // In production, use .env
-const MONGO_URI = 'mongodb://127.0.0.1:27017/pigglitz'; // Local dev DB
+const PORT      = process.env.PORT       || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretpigglitzkey';
+const MONGO_URI  = process.env.MONGODB_URI;
 
 // Models
 const ProductSchema = new mongoose.Schema({
@@ -38,8 +40,8 @@ const User = mongoose.model('User', UserSchema);
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected to Atlas'))
+  .catch(err => { console.error('❌ MongoDB connection error:', err); process.exit(1); });
 
 // Auth Middleware
 const authMiddleware = (req, res, next) => {
