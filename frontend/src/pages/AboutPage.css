@@ -1,0 +1,98 @@
+.about-hero {
+  background: linear-gradient(135deg, #00BFFF 0%, #7B2CBF 100%);
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-hero h1 {
+  font-size: 3.5rem;
+  color: white;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+  margin-bottom: 0.8rem;
+}
+
+.about-hero p {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.2rem;
+}
+
+.floating-star {
+  position: absolute;
+  font-size: 2.5rem;
+  animation: float 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.star-a { top: 15%; left: 8%; animation-delay: 0s; }
+.star-b { top: 55%; right: 8%; animation-delay: 1.2s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(10deg); }
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  padding: 4rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .about-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.about-card {
+  padding: 2.5rem;
+  border-radius: 30px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.about-card:hover {
+  transform: translateY(-8px) rotate(-1deg);
+}
+
+.card-purple { background: #f3e8ff; border: 3px solid var(--color-purple); }
+.card-pink   { background: #ffe5f1; border: 3px solid var(--color-pink); }
+.card-blue   { background: #e5f8ff; border: 3px solid var(--color-blue); }
+
+.about-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.about-card h2 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+  color: var(--color-purple);
+}
+
+.about-card p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.about-list {
+  list-style: none;
+  text-align: left;
+  display: inline-block;
+  color: #555;
+  font-size: 1rem;
+  line-height: 2.2;
+}
+
+.about-team {
+  padding: 2rem 1.5rem 4rem;
+}
+
+.footer {
+  padding: 3rem 1.5rem;
+  background-color: #FFF5F8;
+  border-top: 4px dashed var(--color-pink);
+}

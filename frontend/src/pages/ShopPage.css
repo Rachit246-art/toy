@@ -1,0 +1,77 @@
+.shop-hero {
+  background: linear-gradient(135deg, #7B2CBF 0%, #FF006E 50%, #FB8500 100%);
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.shop-hero h1 {
+  font-size: 3.5rem;
+  color: white;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+  margin-bottom: 0.8rem;
+}
+
+.shop-hero p {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.search-bar-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.shop-search {
+  width: 100%;
+  max-width: 500px;
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 1.1rem;
+  font-family: var(--font-body);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  outline: none;
+}
+
+.shop-grid-section {
+  padding: 4rem 1.5rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.no-toys {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1.4rem;
+  padding: 3rem;
+  color: var(--color-purple);
+}
+
+.floating-star {
+  position: absolute;
+  font-size: 2.5rem;
+  animation: float 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.star-a { top: 10%; left: 5%; animation-delay: 0s; }
+.star-b { top: 60%; right: 5%; animation-delay: 1s; font-size: 2rem; }
+.star-c { top: 20%; right: 12%; animation-delay: 0.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(10deg); }
+}
+
+.footer {
+  padding: 3rem 1.5rem;
+  background-color: #FFF5F8;
+  border-top: 4px dashed var(--color-pink);
+}

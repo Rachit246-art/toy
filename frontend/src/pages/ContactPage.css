@@ -1,0 +1,134 @@
+.contact-hero {
+  background: linear-gradient(135deg, #FFB703 0%, #FB8500 40%, #FF006E 100%);
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-hero h1 {
+  font-size: 3.5rem;
+  color: white;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+  margin-bottom: 0.8rem;
+}
+
+.contact-hero p {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.2rem;
+}
+
+.floating-star {
+  position: absolute;
+  font-size: 2.5rem;
+  animation: float 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.star-a { top: 15%; left: 8%; animation-delay: 0s; }
+.star-b { top: 55%; right: 8%; animation-delay: 1.2s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(10deg); }
+}
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  padding: 4rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .contact-layout {
+    grid-template-columns: 1fr 2fr;
+    align-items: start;
+  }
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.07);
+  border-left: 6px solid var(--color-yellow);
+  transition: transform 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateX(8px);
+}
+
+.info-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-card h3 {
+  color: var(--color-purple);
+  font-size: 1.1rem;
+  margin-bottom: 0.3rem;
+}
+
+.info-card p {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.contact-form-wrapper {
+  background: white;
+  border-radius: 30px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+  border: 3px solid var(--color-orange);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.contact-form h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.playful-input {
+  padding: 1rem 1.5rem;
+  border-radius: 15px;
+  border: 2px solid #ddd;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+  resize: vertical;
+}
+
+.playful-input:focus {
+  border-color: var(--color-orange);
+  box-shadow: 0 0 0 4px rgba(251, 133, 0, 0.15);
+}
+
+.success-message {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-message h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.footer {
+  padding: 3rem 1.5rem;
+  background-color: #FFF5F8;
+  border-top: 4px dashed var(--color-pink);
+}

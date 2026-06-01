@@ -1,0 +1,176 @@
+/* ─── Hero ─── */
+.hero {
+  background: linear-gradient(135deg, #FFF5F8 0%, #F0F8FF 100%);
+  padding: 3rem 1rem 7rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+@media (min-width: 900px) {
+  .hero-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* ─── Left Content ─── */
+.hero-content {
+  flex: 1;
+  text-align: center;
+  animation: fadeIn 0.7s ease;
+}
+
+@media (min-width: 900px) {
+  .hero-content { text-align: left; }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: white;
+  color: var(--color-purple);
+  padding: 0.45rem 1rem;
+  border-radius: 50px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 10px rgba(123, 44, 191, 0.12);
+  border: 2px solid var(--color-yellow);
+  white-space: nowrap;
+}
+
+.hero-title {
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  line-height: 1.1;
+  margin-bottom: 1.2rem;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.05);
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: #555;
+  margin-bottom: 2rem;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 900px) {
+  .hero-subtitle { margin-left: 0; }
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 900px) {
+  .hero-actions { justify-content: flex-start; }
+}
+
+/* ─── Right Image ─── */
+.hero-image-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  width: 100%;
+}
+
+.hero-image-placeholder {
+  width: clamp(200px, 40vw, 300px);
+  height: clamp(200px, 40vw, 300px);
+  background-color: var(--color-yellow);
+  border-radius: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  border: 8px solid white;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  transform: rotate(5deg);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+}
+
+.hero-image-placeholder:hover { transform: rotate(-2deg) scale(1.05); }
+
+.hero-toy-emoji { font-size: clamp(3rem, 8vw, 5rem); }
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 1;
+  opacity: 0.5;
+}
+
+.blob-1 {
+  width: clamp(150px, 30vw, 280px);
+  height: clamp(150px, 30vw, 280px);
+  background-color: var(--color-pink);
+  top: 0; left: 5%;
+  animation: pulse 4s infinite alternate;
+}
+
+.blob-2 {
+  width: clamp(120px, 25vw, 230px);
+  height: clamp(120px, 25vw, 230px);
+  background-color: var(--color-blue);
+  bottom: 0; right: 5%;
+  animation: pulse 3s infinite alternate-reverse;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.12); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.star { position: absolute; z-index: 20; animation: float 3s ease-in-out infinite; }
+.star-1 { top: 8%;  left: 12%;  font-size: clamp(1.5rem, 4vw, 3rem); }
+.star-2 { bottom: 15%; right: 8%; font-size: clamp(1.2rem, 3vw, 2.5rem); animation-delay: 1s; }
+.star-3 { top: 25%; right: 18%; font-size: clamp(1rem, 2vw, 1.5rem); animation-delay: 0.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(8deg); }
+}
+
+/* ─── Wave Divider ─── */
+.custom-shape-divider-bottom-1685532000 {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  transform: rotate(180deg);
+}
+
+.custom-shape-divider-bottom-1685532000 svg {
+  display: block;
+  width: calc(100% + 1.3px);
+  height: clamp(40px, 6vw, 80px);
+}
+
+.custom-shape-divider-bottom-1685532000 .shape-fill { fill: var(--color-bg); }

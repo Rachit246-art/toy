@@ -1,0 +1,188 @@
+/* ─── Footer Shell ─── */
+.site-footer {
+  position: relative;
+  margin-top: auto;
+}
+
+/* ─── Wave ─── */
+.footer-wave {
+  display: block;
+  line-height: 0;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+.footer-wave svg {
+  display: block;
+  width: 100%;
+  height: clamp(30px, 5vw, 60px);
+}
+
+/* ─── Body ─── */
+.footer-body {
+  background-color: #FFF0F6;
+  border-top: 4px dashed var(--color-pink);
+}
+
+/* ─── Main grid ─── */
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 600px) {
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .footer-container {
+    grid-template-columns: 2fr 1fr 1.4fr 1.4fr;
+    gap: 2rem;
+  }
+}
+
+/* ─── Brand column ─── */
+.footer-logo {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.06);
+  margin-bottom: 0.6rem;
+}
+
+.footer-tagline {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: var(--color-purple);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.footer-desc {
+  font-size: 0.92rem;
+  color: #666;
+  line-height: 1.7;
+  max-width: 280px;
+}
+
+/* ─── Column headings ─── */
+.footer-heading {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  position: relative;
+  display: inline-block;
+}
+
+.footer-heading::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 4px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+/* ─── Link lists ─── */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.footer-links li {
+  font-size: 0.93rem;
+  color: #555;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  line-height: 1.5;
+}
+
+.footer-links button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.93rem;
+  color: #555;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-links button:hover {
+  color: var(--color-purple);
+  transform: translateX(4px);
+}
+
+/* ─── Bottom bar ─── */
+.footer-bottom {
+  background-color: #FFE4EF;
+  border-top: 2px solid rgba(255, 0, 110, 0.15);
+  padding: 1rem 1.5rem;
+}
+
+.footer-bottom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+@media (min-width: 600px) {
+  .footer-bottom-inner {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+.footer-bottom-inner p {
+  font-size: 0.88rem;
+  color: #777;
+}
+
+.footer-bottom-inner strong {
+  color: var(--color-purple);
+}
+
+/* ─── Emoji row ─── */
+.footer-emojis {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 1.2rem;
+}
+
+.footer-emojis span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+
+.footer-emojis span:hover {
+  transform: scale(1.4) rotate(-8deg);
+}
+
+/* ─── Color utilities (in case not globally available) ─── */
+.text-purple { color: var(--color-purple); }
+.text-pink   { color: var(--color-pink); }
+.text-blue   { color: var(--color-blue); }
+.text-orange { color: var(--color-orange); }
+.text-yellow { color: var(--color-yellow); }
