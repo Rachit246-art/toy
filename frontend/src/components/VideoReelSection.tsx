@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Heart } from 'lucide-react';
+import axios from 'axios';
+import API_BASE from '../config';
 
 /* Inline Instagram SVG — lucide-react doesn't include it */
 const InstagramIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -18,7 +20,6 @@ const InstagramIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
     <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
   </svg>
 );
-import axios from 'axios';
 import './VideoReelSection.css';
 
 interface Reel {
@@ -75,7 +76,7 @@ const VideoReelSection: React.FC = () => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/reels')
+    axios.get(`${API_BASE}/api/reels`)
       .then(res => setReels(res.data))
       .catch(() => {});
   }, []);

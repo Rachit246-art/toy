@@ -3,6 +3,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
+import API_BASE from '../config';
 import './ShopPage.css';
 
 interface Product {
@@ -10,7 +11,9 @@ interface Product {
   name: string;
   price: string;
   imageColor: string;
+  imageUrl: string;
   badge: string;
+  emoji: string;
 }
 
 const ShopPage = () => {
@@ -18,7 +21,7 @@ const ShopPage = () => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/products').then(res => setProducts(res.data));
+    axios.get(`${API_BASE}/api/products`).then(res => setProducts(res.data));
   }, []);
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -47,7 +50,15 @@ const ShopPage = () => {
         <div className="products-grid">
           {filtered.length > 0 ? (
             filtered.map(p => (
-              <ProductCard key={p._id} name={p.name} price={p.price} imageColor={p.imageColor} badge={p.badge} />
+              <ProductCard
+                key={p._id}
+                name={p.name}
+                price={p.price}
+                imageColor={p.imageColor}
+                imageUrl={p.imageUrl}
+                badge={p.badge}
+                emoji={p.emoji}
+              />
             ))
           ) : (
             <p className="no-toys">No toys found! Try a different search 🧸</p>
