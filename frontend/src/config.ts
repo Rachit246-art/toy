@@ -1,6 +1,8 @@
-// Central API base URL
-// In Vercel: set VITE_API_URL = https://toy-backend-rsua.onrender.com
-// In local: falls back to localhost
-const raw = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_BASE = raw.replace(/\/$/, ''); // strip trailing slash
+// In production (Vercel), requests to /api/* are proxied to the Render backend
+// via vercel.json rewrites — no env var needed.
+// In local dev, falls back to localhost:5000.
+const API_BASE = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+  : (import.meta.env.PROD ? '' : 'http://localhost:5000');
+
 export default API_BASE;
