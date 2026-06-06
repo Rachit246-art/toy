@@ -1,8 +1,4 @@
-// In production (Vercel), /api/* is proxied to Render backend via vercel.json rewrites.
-// So API_BASE is '' in production — all calls go to /api/... (same origin, no CORS).
-// In local dev, falls back to localhost:5000.
-const API_BASE = import.meta.env.PROD
-  ? ''
-  : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
-
+// Set VITE_API_URL in Vercel environment variables:
+// VITE_API_URL = https://toy-backend-rsua.onrender.com
+const API_BASE = (import.meta.env.VITE_API_URL as string || 'http://localhost:5000').replace(/\/$/, '');
 export default API_BASE;
