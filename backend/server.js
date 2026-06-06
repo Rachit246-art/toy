@@ -103,12 +103,13 @@ mongoose.connect(MONGO_URI)
   })
   .catch(err => { console.error('❌ MongoDB connection error:', err); process.exit(1); });
 
-// Auth Middleware
+// Auth Middleware — reads Bearer token from Authorization header
 const authMiddleware = (req, res, next) => {
-  const token = req.header('Authorization');
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'] || '';
+  const token = authHeader.replace('Bearer ', '').trim();
   if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
   try {
-    const decoded = jwt.verify(token.replace('Bearer ', ''), JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
@@ -125,13 +126,13 @@ app.post('/api/auth/login', async (req, res) => {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-      const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
+      const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET);
       return res.json({ token, user: { email: user.email, role: user.role } });
     }
 
     // Fallback: hardcoded admin (in case DB seed hasn't run yet)
     if (email === 'connect2rachit882@gmail.com' && password === 'Rachit@12') {
-      const token = jwt.sign({ email, role: 'admin' }, JWT_SECRET, { expiresIn: '30d' });
+      const token = jwt.sign({ email, role: 'admin' }, JWT_SECRET);
       return res.json({ token, user: { email, role: 'admin' } });
     }
 
@@ -302,11 +303,17 @@ app.post('/api/reels', authMiddleware, upload.single('thumbnail'), async (req, r
   try {
     const { title, youtubeUrl, likes } = req.body;
     const thumbnailUrl = req.file ? req.file.path : '';
-    const reel = new VideoReel({ title, youtubeUrl, thumbnailUrl, likes: parseInt(likes) || 0 });
+    const reel = new VideoReel({
+      title,
+      youtubeUrl,
+      thumbnailUrl,
+      likes: parseInt(likes) || 0
+    });
     const saved = await reel.save();
     res.status(201).json(saved);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Add reel error:', err);
+    res.status(500).json({ message: 'Server error', detail: err.message });
   }
 });
 
@@ -326,14 +333,19 @@ app.put('/api/reels/:id', authMiddleware, upload.single('thumbnail'), async (req
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
     const { title, youtubeUrl, likes } = req.body;
-    const updates = { title, youtubeUrl, likes: parseInt(likes) || 0 };
+    const updates = {
+      title,
+      youtubeUrl,
+      likes: parseInt(likes) || 0
+    };
     if (req.file) updates.thumbnailUrl = req.file.path;
     const updated = await VideoReel.findByIdAndUpdate(
       req.params.id, { $set: updates }, { new: true }
     );
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Edit reel error:', err);
+    res.status(500).json({ message: 'Server error', detail: err.message });
   }
 });
 

@@ -175,13 +175,20 @@ const AdminPanel: React.FC = () => {
       fd.append('likes', String(parseInt(reelLikes)||0));
       if (reelThumbFile) fd.append('thumbnail', reelThumbFile);
       await axios.post(`${API_BASE}/api/reels`, fd, {
-        headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
+        headers: {
+          Authorization: `Bearer ${token()}`,
+          // DO NOT set Content-Type — let browser set it with boundary for multipart
+        },
       });
       setReelTitle(''); setReelUrl(''); setReelLikes('0');
       setReelThumbFile(null); setReelThumbPreview('');
       if (reelThumbRef.current) reelThumbRef.current.value = '';
       setReelMsg('✅ Reel added!'); fetchReels();
-    } catch { setReelMsg('❌ Failed to add reel.'); }
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || err?.response?.data?.message || '';
+      setReelMsg(`❌ Failed to add reel. ${detail}`);
+      console.error('Add reel error:', err?.response?.data);
+    }
   };
 
   // ── Open edit reel ──
@@ -201,7 +208,7 @@ const AdminPanel: React.FC = () => {
       fd.append('likes', String(parseInt(eReelLikes)||0));
       if (eReelThumbFile) fd.append('thumbnail', eReelThumbFile);
       await axios.put(`${API_BASE}/api/reels/${editingReel._id}`, fd, {
-        headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
+        headers: { Authorization: `Bearer ${token()}` },
       });
       setEReelMsg('✅ Saved!'); fetchReels();
       setTimeout(() => setEditingReel(null), 600);
