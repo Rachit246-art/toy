@@ -17,19 +17,21 @@ const InstagramIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
 interface Reel {
   _id: string;
   title: string;
-  youtubeUrl: string;   // stores any video URL: YouTube or Instagram
-  thumbnailUrl?: string; // optional custom thumbnail from Cloudinary
+  youtubeUrl: string;
+  thumbnailUrl?: string;
   likes: number;
 }
 
-/* ── URL helpers ── */
+/* ── Helpers ── */
 function getVideoType(url: string): 'youtube' | 'instagram' | 'other' {
+  if (!url) return 'other';
   if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
   if (/instagram\.com/.test(url)) return 'instagram';
   return 'other';
 }
 
 function getYouTubeId(url: string): string | null {
+  if (!url) return null;
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^&?/\s]{11})/);
   return m ? m[1] : null;
 }
@@ -44,15 +46,16 @@ function getYouTubeEmbed(url: string): string {
   return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1` : '';
 }
 
-function getThumbnail(reel: Reel): string {
-  if (reel.thumbnailUrl) return reel.thumbnailUrl;
+function getDisplayThumb(reel: Reel): string {
+  // Custom thumbnail (Cloudinary) takes priority
+  if (reel.thumbnailUrl && reel.thumbnailUrl.trim()) return reel.thumbnailUrl;
+  // Auto-generate for YouTube
   const type = getVideoType(reel.youtubeUrl);
   if (type === 'youtube') return getYouTubeThumbnail(reel.youtubeUrl);
-  // Instagram — return empty, we'll show a gradient placeholder
   return '';
 }
 
-/* ── Card offset transform ── */
+/* ── Card offset transform (no CSS abs()) ── */
 function cardStyle(offset: number): React.CSSProperties {
   const abs = Math.abs(offset);
   return {
@@ -65,9 +68,9 @@ function cardStyle(offset: number): React.CSSProperties {
 const HANDLE = '@pigglitz';
 
 const VideoReelSection: React.FC = () => {
-  const [reels, setReels] = useState<Reel[]>([]);
-  const [active, setActive] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [reels, setReels]         = useState<Reel[]>([]);
+  const [active, setActive]       = useState(0);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -76,28 +79,39 @@ const VideoReelSection: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  const stopTimer = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+
   const startTimer = useCallback((len: number) => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    stopTimer();
     if (len < 2) return;
-    timerRef.current = setInterval(() => setActive(i => (i + 1) % len), 3500);
-  }, []);
+    timerRef.current = setInterval(() => {
+      setActive(prev => (prev + 1) % len);
+      setPlayingId(null);
+    }, 3500);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
-    if (!playing && reels.length > 0) startTimer(reels.length);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [playing, reels.length, startTimer]);
+    if (reels.length > 0 && !playingId) startTimer(reels.length);
+    return stopTimer;
+  }, [reels.length, playingId, startTimer]);
 
-  const goTo = (i: number) => { setActive(i); setPlaying(false); startTimer(reels.length); };
+  const goTo = (i: number) => {
+    setActive(i);
+    setPlayingId(null);
+    startTimer(reels.length);
+  };
 
   const handlePlay = (e: React.MouseEvent, reel: Reel) => {
     e.stopPropagation();
     const type = getVideoType(reel.youtubeUrl);
     if (type === 'instagram' || type === 'other') {
-      // Instagram can't be embedded — open in new tab
+      // Instagram blocks iframe — open in new tab
       window.open(reel.youtubeUrl, '_blank', 'noopener,noreferrer');
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setPlaying(true);
+      stopTimer();
+      setPlayingId(reel._id);
     }
   };
 
@@ -120,13 +134,14 @@ const VideoReelSection: React.FC = () => {
 
       <div className="reel-stage">
         {reels.map((reel, i) => {
-          const offset   = getOffset(i);
-          const isActive = offset === 0;
+          const offset    = getOffset(i);
+          const isActive  = offset === 0;
           if (Math.abs(offset) > 2) return null;
 
           const type      = getVideoType(reel.youtubeUrl);
-          const thumb     = getThumbnail(reel);
+          const isPlaying = playingId === reel._id && isActive;
           const isInsta   = type === 'instagram';
+          const thumb     = getDisplayThumb(reel);
 
           return (
             <div
@@ -135,8 +150,8 @@ const VideoReelSection: React.FC = () => {
               style={isActive ? { zIndex: 10 } : cardStyle(offset)}
               onClick={() => !isActive && goTo(i)}
             >
-              {isActive && playing && type === 'youtube' ? (
-                /* YouTube embed */
+              {/* ── Playing YouTube ── */}
+              {isPlaying && type === 'youtube' ? (
                 <iframe
                   className="reel-iframe"
                   src={getYouTubeEmbed(reel.youtubeUrl)}
@@ -146,38 +161,54 @@ const VideoReelSection: React.FC = () => {
                 />
               ) : (
                 <>
-                  {/* Thumbnail */}
+                  {/* Thumbnail or gradient placeholder */}
                   {thumb ? (
-                    <img className="reel-thumb" src={thumb} alt={reel.title} loading="lazy" />
+                    <img
+                      className="reel-thumb"
+                      src={thumb}
+                      alt={reel.title}
+                      loading="lazy"
+                      onError={e => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
                   ) : (
-                    /* Instagram placeholder gradient */
                     <div className="reel-insta-placeholder">
-                      <InstagramIcon size={48} />
+                      {isInsta ? <InstagramIcon size={48} /> : <span style={{ fontSize: '3rem' }}>🎬</span>}
                       <span>{reel.title}</span>
                     </div>
                   )}
 
+                  {/* Dark gradient overlay */}
                   <div className="reel-overlay" />
 
-                  {isActive && <div className="reel-top-label">{reel.title}</div>}
+                  {/* Title label */}
+                  {isActive && reel.title && (
+                    <div className="reel-top-label">{reel.title}</div>
+                  )}
 
-                  {/* Play / Open button */}
+                  {/* Play / Open button — active card only */}
                   {isActive && (
                     <button
                       className={`reel-play-btn${isInsta ? ' reel-play-btn--insta' : ''}`}
                       onClick={e => handlePlay(e, reel)}
                       aria-label={isInsta ? 'Open on Instagram' : 'Play video'}
                     >
-                      {isInsta ? <InstagramIcon size={26} /> : <Play size={26} fill="currentColor" />}
+                      {isInsta
+                        ? <InstagramIcon size={26} />
+                        : <Play size={26} fill="var(--color-purple)" color="var(--color-purple)" />
+                      }
                     </button>
                   )}
 
+                  {/* Instagram badge */}
                   {isInsta && isActive && (
                     <div className="reel-insta-badge">
-                      <InstagramIcon size={12} /> Instagram Reel
+                      <InstagramIcon size={12} /> Instagram
                     </div>
                   )}
 
+                  {/* Likes */}
                   <div className="reel-likes">
                     <Heart size={13} fill="white" color="white" />
                     <span>{reel.likes.toLocaleString()}</span>
@@ -189,16 +220,25 @@ const VideoReelSection: React.FC = () => {
         })}
       </div>
 
+      {/* Dot indicators */}
       <div className="reel-dots">
         {reels.map((_, i) => (
-          <button key={i}
+          <button
+            key={i}
             className={`reel-dot${active === i ? ' reel-dot--active' : ''}`}
-            onClick={() => goTo(i)} aria-label={`Reel ${i + 1}`} />
+            onClick={() => goTo(i)}
+            aria-label={`Reel ${i + 1}`}
+          />
         ))}
       </div>
 
-      <a href={`https://www.instagram.com/${HANDLE.replace('@', '')}`}
-        target="_blank" rel="noopener noreferrer" className="reel-handle">
+      {/* Instagram handle */}
+      <a
+        href={`https://www.instagram.com/${HANDLE.replace('@', '')}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="reel-handle"
+      >
         <InstagramIcon size={18} />
         {HANDLE}
       </a>

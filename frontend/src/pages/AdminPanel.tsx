@@ -97,7 +97,7 @@ const AdminPanel: React.FC = () => {
 
   // Persistent session — only redirect if no token at all
   useEffect(() => {
-    if (!token()) { navigate('/login'); return; }
+    if (!token()) { navigate('/login', { replace: true }); return; }
     checkDb(); fetchProducts(); fetchReels();
   }, [navigate]);
 
@@ -121,7 +121,7 @@ const AdminPanel: React.FC = () => {
       setProductMsg('✅ Toy added!'); fetchProducts();
     } catch (err) {
       setProductMsg('❌ Failed to add toy.');
-      if ((err as any).response?.status === 401) { localStorage.removeItem('token'); navigate('/login'); }
+      // Only force logout if login itself fails, not on product API errors
     } finally { setUploading(false); }
   };
 
@@ -550,8 +550,14 @@ const AdminPanel: React.FC = () => {
                       /* ── Normal reel row ── */
                       <div className="admin-reel-item">
                         <div className="reel-item-thumb">
-                          <img src={`https://img.youtube.com/vi/${extractId(r.youtubeUrl)}/default.jpg`}
-                            alt={r.title} onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                          {r.thumbnailUrl ? (
+                            <img src={r.thumbnailUrl} alt={r.title} />
+                          ) : extractId(r.youtubeUrl) ? (
+                            <img src={`https://img.youtube.com/vi/${extractId(r.youtubeUrl)}/default.jpg`}
+                              alt={r.title} onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+                          ) : (
+                            <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#f09433,#dc2743,#bc1888)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem',borderRadius:'10px'}}>📸</div>
+                          )}
                         </div>
                         <div className="reel-item-info">
                           <h4>{r.title}</h4>

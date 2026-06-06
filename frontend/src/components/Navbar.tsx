@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
             <ShoppingCart size={22} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </button>
-          <button className="icon-btn text-blue" onClick={() => goTo('/login')} title="Admin">
+          <button className="icon-btn text-blue" onClick={() => goTo(localStorage.getItem('token') ? '/admin' : '/login')} title="Admin">
             <User size={22} />
           </button>
           {/* Hamburger — mobile only */}
@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
           <button className="mobile-nav-link text-blue" onClick={() => goTo('/about')}>🌈 About Us</button>
           <button className="mobile-nav-link text-orange" onClick={() => goTo('/contact')}>💌 Contact</button>
           <button className="mobile-nav-link text-pink" onClick={() => goTo('/cart')}>🛒 My Cart ({cartCount})</button>
-          <button className="mobile-nav-link text-purple" onClick={() => goTo('/login')}>🔐 Admin Login</button>
+          <button className="mobile-nav-link text-purple" onClick={() => goTo(localStorage.getItem('token') ? '/admin' : '/login')}>🔐 {localStorage.getItem('token') ? 'Admin Panel' : 'Admin Login'}</button>
         </div>
       )}
     </nav>
