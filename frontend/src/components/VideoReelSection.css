@@ -225,3 +225,48 @@
   transform: translateY(-3px);
   box-shadow: 0 8px 22px rgba(0,191,255,0.28);
 }
+
+/* ── Instagram placeholder ── */
+.reel-insta-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Instagram-themed play button */
+.reel-play-btn--insta {
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important;
+  color: white !important;
+}
+
+.reel-play-btn--insta:hover {
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+/* Instagram badge on card */
+.reel-insta-badge {
+  position: absolute;
+  bottom: 44px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #f09433, #dc2743, #bc1888);
+  color: white;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+}

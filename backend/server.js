@@ -80,10 +80,11 @@ const ProductSchema = new mongoose.Schema({
 const Product = mongoose.model('Product', ProductSchema);
 
 const VideoReelSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  youtubeUrl: { type: String, required: true },
-  likes: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now }
+  title:        { type: String, required: true },
+  youtubeUrl:   { type: String, required: true },
+  thumbnailUrl: { type: String, default: '' },
+  likes:        { type: Number, default: 0 },
+  createdAt:    { type: Date, default: Date.now }
 });
 const VideoReel = mongoose.model('VideoReel', VideoReelSchema);
 
@@ -296,10 +297,12 @@ app.get('/api/reels', async (req, res) => {
 });
 
 // 9. Add Video Reel (Admin Only)
-app.post('/api/reels', authMiddleware, async (req, res) => {
+app.post('/api/reels', authMiddleware, upload.single('thumbnail'), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
-    const reel = new VideoReel(req.body);
+    const { title, youtubeUrl, likes } = req.body;
+    const thumbnailUrl = req.file ? req.file.path : '';
+    const reel = new VideoReel({ title, youtubeUrl, thumbnailUrl, likes: parseInt(likes) || 0 });
     const saved = await reel.save();
     res.status(201).json(saved);
   } catch (err) {
@@ -319,13 +322,14 @@ app.delete('/api/reels/:id', authMiddleware, async (req, res) => {
 });
 
 // 11. Edit Video Reel (Admin Only)
-app.put('/api/reels/:id', authMiddleware, async (req, res) => {
+app.put('/api/reels/:id', authMiddleware, upload.single('thumbnail'), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
+    const { title, youtubeUrl, likes } = req.body;
+    const updates = { title, youtubeUrl, likes: parseInt(likes) || 0 };
+    if (req.file) updates.thumbnailUrl = req.file.path;
     const updated = await VideoReel.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true }
+      req.params.id, { $set: updates }, { new: true }
     );
     res.json(updated);
   } catch (err) {

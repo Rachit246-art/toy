@@ -480,3 +480,25 @@
   font-size: 0.88rem !important;
   border-radius: 30px !important;
 }
+
+/* ── Reel thumbnail upload button in edit row ── */
+.reel-thumb-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: white;
+  border: 2px solid var(--color-purple);
+  color: var(--color-purple);
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem 0.7rem;
+  border-radius: 50px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.reel-thumb-upload-btn:hover {
+  background: var(--color-purple);
+  color: white;
+}

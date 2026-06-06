@@ -11,7 +11,13 @@ interface Product {
   imageUrl: string; badge: string; emoji: string;
   isFeatured: boolean; isNewArrival: boolean;
 }
-interface Reel { _id: string; title: string; youtubeUrl: string; likes: number; }
+interface Reel {
+  _id: string;
+  title: string;
+  youtubeUrl: string;
+  thumbnailUrl?: string;
+  likes: number;
+}
 
 const EMOJI_OPTIONS = ['🧸','🚀','🦕','🤖','🦄','🎠','🐉','🎪','🎡','🎨','🦊','🐙','🦋','🐻','🦁','🐬','🦸','🌟'];
 
@@ -59,6 +65,9 @@ const AdminPanel: React.FC = () => {
   const [reelUrl, setReelUrl] = useState('');
   const [reelLikes, setReelLikes] = useState('0');
   const [reelMsg, setReelMsg] = useState('');
+  const [reelThumbFile, setReelThumbFile] = useState<File|null>(null);
+  const [reelThumbPreview, setReelThumbPreview] = useState('');
+  const reelThumbRef = useRef<HTMLInputElement>(null);
 
   // ── Edit reel inline ──
   const [editingReel, setEditingReel] = useState<Reel|null>(null);
@@ -66,6 +75,8 @@ const AdminPanel: React.FC = () => {
   const [eReelUrl, setEReelUrl] = useState('');
   const [eReelLikes, setEReelLikes] = useState('0');
   const [eReelMsg, setEReelMsg] = useState('');
+  const [eReelThumbFile, setEReelThumbFile] = useState<File|null>(null);
+  const [eReelThumbPreview, setEReelThumbPreview] = useState('');
 
   const navigate = useNavigate();
   const token = () => localStorage.getItem('token');
@@ -158,9 +169,17 @@ const AdminPanel: React.FC = () => {
   const handleAddReel = async (e: React.FormEvent) => {
     e.preventDefault(); setReelMsg('');
     try {
-      await axios.post(`${API_BASE}/api/reels`,
-        { title: reelTitle, youtubeUrl: reelUrl, likes: parseInt(reelLikes)||0 }, authHeader());
+      const fd = new FormData();
+      fd.append('title', reelTitle);
+      fd.append('youtubeUrl', reelUrl);
+      fd.append('likes', String(parseInt(reelLikes)||0));
+      if (reelThumbFile) fd.append('thumbnail', reelThumbFile);
+      await axios.post(`${API_BASE}/api/reels`, fd, {
+        headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
+      });
       setReelTitle(''); setReelUrl(''); setReelLikes('0');
+      setReelThumbFile(null); setReelThumbPreview('');
+      if (reelThumbRef.current) reelThumbRef.current.value = '';
       setReelMsg('✅ Reel added!'); fetchReels();
     } catch { setReelMsg('❌ Failed to add reel.'); }
   };
@@ -169,14 +188,21 @@ const AdminPanel: React.FC = () => {
   const openEditReel = (r: Reel) => {
     setEditingReel(r); setEReelTitle(r.title);
     setEReelUrl(r.youtubeUrl); setEReelLikes(String(r.likes)); setEReelMsg('');
+    setEReelThumbFile(null); setEReelThumbPreview(r.thumbnailUrl || '');
   };
 
   // ── Save edit reel ──
   const handleSaveReel = async (e: React.FormEvent) => {
     e.preventDefault(); if (!editingReel) return; setEReelMsg('');
     try {
-      await axios.put(`${API_BASE}/api/reels/${editingReel._id}`,
-        { title: eReelTitle, youtubeUrl: eReelUrl, likes: parseInt(eReelLikes)||0 }, authHeader());
+      const fd = new FormData();
+      fd.append('title', eReelTitle);
+      fd.append('youtubeUrl', eReelUrl);
+      fd.append('likes', String(parseInt(eReelLikes)||0));
+      if (eReelThumbFile) fd.append('thumbnail', eReelThumbFile);
+      await axios.put(`${API_BASE}/api/reels/${editingReel._id}`, fd, {
+        headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
+      });
       setEReelMsg('✅ Saved!'); fetchReels();
       setTimeout(() => setEditingReel(null), 600);
     } catch { setEReelMsg('❌ Save failed.'); }
@@ -443,17 +469,44 @@ const AdminPanel: React.FC = () => {
               <form onSubmit={handleAddReel} className="admin-form">
                 <input type="text" placeholder="Reel title" value={reelTitle}
                   onChange={e => setReelTitle(e.target.value)} required className="playful-input" />
-                <input type="url" placeholder="YouTube URL (e.g. https://youtu.be/abc123)"
+                <input type="url" placeholder="YouTube or Instagram Reel URL"
                   value={reelUrl} onChange={e => setReelUrl(e.target.value)} required className="playful-input" />
                 <input type="number" placeholder="Likes count" value={reelLikes}
                   onChange={e => setReelLikes(e.target.value)} min="0" className="playful-input" />
+
+                {/* Thumbnail upload — required for Instagram, optional for YouTube */}
+                <div className="image-upload-area">
+                  <label className="field-label">
+                    Thumbnail Image
+                    <span style={{fontWeight:400,color:'#999',marginLeft:'0.4rem'}}>(required for Instagram reels)</span>
+                  </label>
+                  {reelThumbPreview ? (
+                    <div className="image-preview-box">
+                      <img src={reelThumbPreview} alt="thumb" className="image-preview" style={{height:120}} />
+                      <button type="button" className="image-clear-btn"
+                        onClick={() => { setReelThumbFile(null); setReelThumbPreview(''); if(reelThumbRef.current) reelThumbRef.current.value=''; }}>
+                        <X size={14}/> Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="image-drop-zone" htmlFor="reel-thumb-input" style={{padding:'0.8rem'}}>
+                      <Upload size={22} color="var(--color-purple)" />
+                      <span style={{fontSize:'0.82rem'}}>Upload thumbnail (JPG/PNG)</span>
+                    </label>
+                  )}
+                  <input id="reel-thumb-input" ref={reelThumbRef} type="file" accept="image/*"
+                    onChange={e => { const f=e.target.files?.[0]; if(f){setReelThumbFile(f);setReelThumbPreview(URL.createObjectURL(f));} }}
+                    style={{display:'none'}} />
+                </div>
+
                 <button type="submit" className="btn-playful btn-primary">
                   <Film size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Add Reel
                 </button>
                 {reelMsg && <p className="reel-msg">{reelMsg}</p>}
               </form>
               <div className="reel-url-hint">
-                <strong>Supported:</strong> youtube.com/watch?v=… | youtu.be/… | youtube.com/shorts/…
+                <strong>YouTube:</strong> youtube.com/watch?v=… | youtu.be/… | youtube.com/shorts/…<br/>
+                <strong>Instagram:</strong> instagram.com/reel/… | instagram.com/p/… (opens in new tab)
               </div>
             </div>
 
@@ -469,9 +522,16 @@ const AdminPanel: React.FC = () => {
                         <input type="text" value={eReelTitle} onChange={e=>setEReelTitle(e.target.value)}
                           required className="playful-input reel-edit-input" placeholder="Title" />
                         <input type="url" value={eReelUrl} onChange={e=>setEReelUrl(e.target.value)}
-                          required className="playful-input reel-edit-input" placeholder="YouTube URL" />
+                          required className="playful-input reel-edit-input" placeholder="YouTube or Instagram URL" />
                         <input type="number" value={eReelLikes} onChange={e=>setEReelLikes(e.target.value)}
                           min="0" className="playful-input reel-edit-input" placeholder="Likes" style={{width:90}} />
+                        {/* Thumb replace */}
+                        <label htmlFor={`reel-edit-thumb-${r._id}`} className="reel-thumb-upload-btn" title="Replace thumbnail">
+                          <Upload size={14}/>
+                          {eReelThumbFile ? '✅' : 'Thumb'}
+                        </label>
+                        <input id={`reel-edit-thumb-${r._id}`} type="file" accept="image/*" style={{display:'none'}}
+                          onChange={e=>{const f=e.target.files?.[0];if(f){setEReelThumbFile(f);setEReelThumbPreview(URL.createObjectURL(f));}}} />
                         <button type="submit" className="btn-playful btn-primary" style={{padding:'0.5rem 0.9rem'}}>
                           <Save size={15}/>
                         </button>
