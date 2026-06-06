@@ -76,7 +76,6 @@ const AdminPanel: React.FC = () => {
   const [eReelLikes, setEReelLikes] = useState('0');
   const [eReelMsg, setEReelMsg] = useState('');
   const [eReelThumbFile, setEReelThumbFile] = useState<File|null>(null);
-  const [eReelThumbPreview, setEReelThumbPreview] = useState('');
 
   const navigate = useNavigate();
   const token = () => localStorage.getItem('token');
@@ -195,7 +194,7 @@ const AdminPanel: React.FC = () => {
   const openEditReel = (r: Reel) => {
     setEditingReel(r); setEReelTitle(r.title);
     setEReelUrl(r.youtubeUrl); setEReelLikes(String(r.likes)); setEReelMsg('');
-    setEReelThumbFile(null); setEReelThumbPreview(r.thumbnailUrl || '');
+    setEReelThumbFile(null);
   };
 
   // ── Save edit reel ──
@@ -538,7 +537,7 @@ const AdminPanel: React.FC = () => {
                           {eReelThumbFile ? '✅' : 'Thumb'}
                         </label>
                         <input id={`reel-edit-thumb-${r._id}`} type="file" accept="image/*" style={{display:'none'}}
-                          onChange={e=>{const f=e.target.files?.[0];if(f){setEReelThumbFile(f);setEReelThumbPreview(URL.createObjectURL(f));}}} />
+                          onChange={e=>{const f=e.target.files?.[0];if(f){setEReelThumbFile(f);}}} />
                         <button type="submit" className="btn-playful btn-primary" style={{padding:'0.5rem 0.9rem'}}>
                           <Save size={15}/>
                         </button>
