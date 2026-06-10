@@ -19,6 +19,7 @@ interface Reel {
   title: string;
   youtubeUrl: string;
   thumbnailUrl?: string;
+  videoUrl?: string;      // direct MP4 from Cloudinary — plays inline
   likes: number;
 }
 
@@ -44,6 +45,13 @@ function getYouTubeThumbnail(url: string): string {
 function getYouTubeEmbed(url: string): string {
   const id = getYouTubeId(url);
   return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1` : '';
+}
+
+function getInstaEmbed(url: string): string {
+  if (!url) return '';
+  let base = url.split('?')[0];
+  if (!base.endsWith('/')) base += '/';
+  return base + 'embed';
 }
 
 function getDisplayThumb(reel: Reel): string {
@@ -105,13 +113,19 @@ const VideoReelSection: React.FC = () => {
 
   const handlePlay = (e: React.MouseEvent, reel: Reel) => {
     e.stopPropagation();
-    const type = getVideoType(reel.youtubeUrl);
-    if (type === 'instagram' || type === 'other') {
-      // Instagram blocks iframe — open in new tab
-      window.open(reel.youtubeUrl, '_blank', 'noopener,noreferrer');
-    } else {
+    // If direct video file exists — play inline always
+    if (reel.videoUrl) {
       stopTimer();
       setPlayingId(reel._id);
+      return;
+    }
+    const type = getVideoType(reel.youtubeUrl);
+    if (type === 'youtube' || type === 'instagram') {
+      stopTimer();
+      setPlayingId(reel._id);
+    } else {
+      // other without video file — open in new tab
+      window.open(reel.youtubeUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -150,14 +164,35 @@ const VideoReelSection: React.FC = () => {
               style={isActive ? { zIndex: 10 } : cardStyle(offset)}
               onClick={() => !isActive && goTo(i)}
             >
-              {/* ── Playing YouTube ── */}
-              {isPlaying && type === 'youtube' ? (
+              {/* ── Playing Instagram ── */}
+              {isPlaying && type === 'instagram' && !reel.videoUrl ? (
+                <iframe
+                  className="reel-iframe"
+                  src={getInstaEmbed(reel.youtubeUrl)}
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency
+                  allow="encrypted-media"
+                  style={{ background: 'white', width: '100%', height: '100%' }}
+                />
+              ) : isPlaying && type === 'youtube' && !reel.videoUrl ? (
                 <iframe
                   className="reel-iframe"
                   src={getYouTubeEmbed(reel.youtubeUrl)}
                   title={reel.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                />
+              ) : isPlaying && reel.videoUrl ? (
+                /* ── Direct video (Instagram reel uploaded as MP4) ── */
+                <video
+                  className="reel-iframe"
+                  src={reel.videoUrl}
+                  autoPlay
+                  controls
+                  playsInline
+                  loop
+                  style={{ objectFit: 'cover', background: '#000' }}
                 />
               ) : (
                 <>

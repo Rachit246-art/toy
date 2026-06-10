@@ -1,18 +1,32 @@
 import React from 'react';
-import { ShoppingCart, Menu, Search, Star, User, X } from 'lucide-react';
+import { ShoppingCart, Menu, Search, Star, User, X, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
 
   const goTo = (path: string) => {
     navigate(path);
     setMenuOpen(false);
+    setShowProfileMenu(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setShowProfileMenu(false);
+    navigate('/');
   };
 
   return (
@@ -41,13 +55,44 @@ const Navbar: React.FC = () => {
           <button className="icon-btn text-pink" onClick={() => goTo('/shop')} title="Search">
             <Search size={22} />
           </button>
+          <button className="icon-btn text-red cart-btn" onClick={() => goTo('/wishlist')} title="Wishlist">
+            <Heart size={22} />
+            {wishlistCount > 0 && <span className="cart-badge bg-pink">{wishlistCount}</span>}
+          </button>
           <button className="icon-btn text-purple cart-btn" onClick={() => goTo('/cart')} title="Cart">
             <ShoppingCart size={22} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </button>
-          <button className="icon-btn text-blue" onClick={() => goTo(localStorage.getItem('token') ? '/admin' : '/login')} title="Admin">
-            <User size={22} />
-          </button>
+          
+          {user ? (
+            <div className="nav-profile-container" style={{ position: 'relative' }}>
+              <button 
+                className="icon-btn text-blue user-profile-btn" 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{ fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', width: 'auto', padding: '0 0.5rem' }}
+              >
+                <User size={20} />
+                <span className="hide-mobile">{user.name ? user.name.split(' ')[0] : 'User'}</span>
+              </button>
+              
+              {showProfileMenu && (
+                <div className="profile-dropdown">
+                  <div className="dropdown-header">Hi, {user.name || 'User'}!</div>
+                  {user.role === 'admin' ? (
+                    <button onClick={() => goTo('/admin')}>Admin Panel</button>
+                  ) : (
+                    <button onClick={() => goTo('/profile')}>My Profile & Orders</button>
+                  )}
+                  <button onClick={handleLogout} style={{ color: '#dc3545' }}>Logout</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="icon-btn text-blue" onClick={() => goTo('/login')} title="Login / Sign Up">
+              <User size={22} />
+            </button>
+          )}
+
           {/* Hamburger — mobile only */}
           <button className="icon-btn mobile-menu-btn text-purple" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -61,8 +106,21 @@ const Navbar: React.FC = () => {
           <button className="mobile-nav-link text-purple" onClick={() => goTo('/shop')}>🧸 Shop Toys</button>
           <button className="mobile-nav-link text-blue" onClick={() => goTo('/about')}>🌈 About Us</button>
           <button className="mobile-nav-link text-orange" onClick={() => goTo('/contact')}>💌 Contact</button>
+          <button className="mobile-nav-link text-red" onClick={() => goTo('/wishlist')}>❤️ My Wishlist ({wishlistCount})</button>
           <button className="mobile-nav-link text-pink" onClick={() => goTo('/cart')}>🛒 My Cart ({cartCount})</button>
-          <button className="mobile-nav-link text-purple" onClick={() => goTo(localStorage.getItem('token') ? '/admin' : '/login')}>🔐 {localStorage.getItem('token') ? 'Admin Panel' : 'Admin Login'}</button>
+          
+          {user ? (
+            <>
+              {user.role === 'admin' ? (
+                <button className="mobile-nav-link text-purple" onClick={() => goTo('/admin')}>🔐 Admin Panel</button>
+              ) : (
+                <button className="mobile-nav-link text-purple" onClick={() => goTo('/profile')}>👤 My Profile</button>
+              )}
+              <button className="mobile-nav-link text-blue" onClick={handleLogout}>👋 Logout ({user.name || 'User'})</button>
+            </>
+          ) : (
+            <button className="mobile-nav-link text-purple" onClick={() => goTo('/login')}>🔐 Login / Sign Up</button>
+          )}
         </div>
       )}
     </nav>

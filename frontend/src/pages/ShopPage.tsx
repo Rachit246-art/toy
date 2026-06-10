@@ -3,6 +3,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
+import { useCart } from '../context/CartContext';
 import API_BASE from '../config';
 import './ShopPage.css';
 
@@ -19,6 +20,7 @@ interface Product {
 const ShopPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
+  const { addToCart } = useCart();
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/products`).then(res => setProducts(res.data));
@@ -52,12 +54,23 @@ const ShopPage = () => {
             filtered.map(p => (
               <ProductCard
                 key={p._id}
+                _id={p._id}
                 name={p.name}
                 price={p.price}
                 imageColor={p.imageColor}
                 imageUrl={p.imageUrl}
                 badge={p.badge}
                 emoji={p.emoji}
+                onAddToCart={() =>
+                  addToCart({
+                    _id: p._id,
+                    name: p.name,
+                    price: p.price,
+                    imageColor: p.imageColor,
+                    emoji: p.emoji || '',
+                    imageUrl: p.imageUrl,
+                  })
+                }
               />
             ))
           ) : (

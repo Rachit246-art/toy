@@ -152,3 +152,54 @@
 .text-yellow { color: var(--color-yellow); }
 .text-orange { color: var(--color-orange); }
 .text-blue   { color: var(--color-blue); }
+
+/* ─── Profile Dropdown ─── */
+.nav-profile-container {
+  position: relative;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  min-width: 180px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  border: 1px solid #eee;
+  padding: 0.5rem 0;
+  z-index: 100;
+  animation: slideDown 0.2s ease;
+}
+
+.dropdown-header {
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  color: #888;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0.5rem;
+}
+
+.profile-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  background: none;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.profile-dropdown button:hover {
+  background: #f8f8f8;
+  color: var(--color-purple);
+}
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none; }
+}

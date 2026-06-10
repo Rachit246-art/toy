@@ -45,8 +45,12 @@ const CartPage = () => {
             <div className="cart-items-list">
               {cartItems.map(item => (
                 <div key={item._id} className="cart-item" style={{ borderLeftColor: item.imageColor }}>
-                  <div className="cart-item-img" style={{ backgroundColor: item.imageColor }}>
-                    <span className="cart-item-emoji">{item.emoji}</span>
+                  <div className="cart-item-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : item.imageColor }}>
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '15px' }} />
+                    ) : (
+                      <span className="cart-item-emoji">{item.emoji}</span>
+                    )}
                   </div>
                   <div className="cart-item-details">
                     <h3 className="text-purple">{item.name}</h3>
@@ -90,6 +94,7 @@ const CartPage = () => {
               <span className="text-purple">₹{cartTotal.toLocaleString()}</span>
             </div>
             <button className="btn-playful btn-primary checkout-btn"
+              onClick={() => navigate('/checkout')}
               style={{ backgroundColor: 'var(--color-pink)', color: 'white', width: '100%', display: 'block', marginTop: '1.5rem' }}>
               <ShoppingBag size={20} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />
               Checkout Now!

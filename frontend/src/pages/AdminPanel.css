@@ -217,10 +217,129 @@
   border: none; border-radius: 10px; cursor: pointer; padding: 0;
 }
 .color-preview {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  border: 2px solid #ddd;
   display: inline-block;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+}
+
+/* ══ TABLES (ORDERS & USERS) ══ */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  background: white;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Forces scroll on mobile */
+  text-align: left;
+}
+
+.admin-table th {
+  background: #f8f8f8;
+  padding: 1.2rem 1rem;
+  font-weight: 700;
+  color: #555;
+  border-bottom: 2px solid #eee;
+}
+
+.admin-table td {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+  color: #333;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover td {
+  background: #fdfdfd;
+}
+
+.table-subtext {
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 0.3rem;
+}
+
+.table-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.table-item-line {
+  background: #f9f9f9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border-left: 2px solid var(--color-purple);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.role-admin {
+  background: #fff0f5;
+  color: var(--color-pink);
+  border: 1px solid #ffb6c1;
+}
+
+.role-user {
+  background: #f0f8ff;
+  color: var(--color-blue);
+  border: 1px solid #add8e6;
+}
+
+.order-status-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.order-status-row label {
+  font-weight: 600;
+  color: #555;
+}
+
+.status-select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+}
+.status-select.status-pending {
+  border-color: #ffc107;
+  color: #d39e00;
+  background: #fffdf5;
+}
+.status-select.status-shipped {
+  border-color: #17a2b8;
+  color: #117a8b;
+  background: #f2fcfd;
+}
+.status-select.status-delivered {
+  border-color: #28a745;
+  color: #1e7e34;
+  background: #f4fdf6;
 }
 
 /* ── Flag toggles ── */
@@ -501,4 +620,9 @@
 .reel-thumb-upload-btn:hover {
   background: var(--color-purple);
   color: white;
+}
+
+.image-drop-zone--has-file {
+  border-color: var(--color-purple) !important;
+  background: rgba(123,44,191,0.06) !important;
 }

@@ -10,6 +10,8 @@ interface Product {
   _id: string; name: string; price: string; imageColor: string;
   imageUrl: string; badge: string; emoji: string;
   isFeatured: boolean; isNewArrival: boolean;
+  description?: string; features?: string; additionalInfo?: string; models?: string;
+  galleryUrls?: string[];
 }
 interface Reel {
   _id: string;
@@ -17,6 +19,21 @@ interface Reel {
   youtubeUrl: string;
   thumbnailUrl?: string;
   likes: number;
+}
+interface Order {
+  _id: string;
+  customerInfo: { name: string; email: string; phone: string; address: string; city: string; pincode: string };
+  items: { _id: string; name: string; price: string; quantity: number; imageUrl: string }[];
+  totalAmount: number;
+  status: 'Pending' | 'Shipped' | 'Delivered';
+  createdAt: string;
+}
+interface UserAccount {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
 }
 
 const EMOJI_OPTIONS = ['🧸','🚀','🦕','🤖','🦄','🎠','🐉','🎪','🎡','🎨','🦊','🐙','🦋','🐻','🦁','🐬','🦸','🌟'];
@@ -30,6 +47,8 @@ const AdminPanel: React.FC = () => {
   const [dbStatus, setDbStatus] = useState<'checking'|'ok'|'error'>('checking');
   const [products, setProducts] = useState<Product[]>([]);
   const [reels, setReels] = useState<Reel[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<UserAccount[]>([]);
 
   // ── Add product form ──
   const [name, setName] = useState('');
@@ -39,8 +58,13 @@ const AdminPanel: React.FC = () => {
   const [emoji, setEmoji] = useState('🧸');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
+  const [description, setDescription] = useState('');
+  const [features, setFeatures] = useState('');
+  const [additionalInfo, setAdditionalInfo] = useState('');
+  const [models, setModels] = useState('');
   const [imageFile, setImageFile] = useState<File|null>(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [productMsg, setProductMsg] = useState('');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,8 +78,13 @@ const AdminPanel: React.FC = () => {
   const [eEmoji, setEEmoji] = useState('🧸');
   const [eFeatured, setEFeatured] = useState(false);
   const [eNewArrival, setENewArrival] = useState(false);
+  const [eDescription, setEDescription] = useState('');
+  const [eFeatures, setEFeatures] = useState('');
+  const [eAdditionalInfo, setEAdditionalInfo] = useState('');
+  const [eModels, setEModels] = useState('');
   const [eImageFile, setEImageFile] = useState<File|null>(null);
   const [eImagePreview, setEImagePreview] = useState('');
+  const [eGalleryFiles, setEGalleryFiles] = useState<File[]>([]);
   const [editMsg, setEditMsg] = useState('');
   const [editUploading, setEditUploading] = useState(false);
   const editFileRef = useRef<HTMLInputElement>(null);
@@ -67,7 +96,10 @@ const AdminPanel: React.FC = () => {
   const [reelMsg, setReelMsg] = useState('');
   const [reelThumbFile, setReelThumbFile] = useState<File|null>(null);
   const [reelThumbPreview, setReelThumbPreview] = useState('');
+  const [reelVideoFile, setReelVideoFile] = useState<File|null>(null);
+  const [reelVideoName, setReelVideoName] = useState('');
   const reelThumbRef = useRef<HTMLInputElement>(null);
+  const reelVideoRef = useRef<HTMLInputElement>(null);
 
   // ── Edit reel inline ──
   const [editingReel, setEditingReel] = useState<Reel|null>(null);
@@ -76,6 +108,7 @@ const AdminPanel: React.FC = () => {
   const [eReelLikes, setEReelLikes] = useState('0');
   const [eReelMsg, setEReelMsg] = useState('');
   const [eReelThumbFile, setEReelThumbFile] = useState<File|null>(null);
+  const [eReelVideoFile, setEReelVideoFile] = useState<File|null>(null);
 
   const navigate = useNavigate();
   const token = () => localStorage.getItem('token');
@@ -93,11 +126,18 @@ const AdminPanel: React.FC = () => {
     try { const r = await axios.get(`${API_BASE}/api/reels`); setReels(r.data); }
     catch (e) { console.error(e); }
   };
+  const fetchOrders = async () => {
+    try { const r = await axios.get(`${API_BASE}/api/orders`, authHeader()); setOrders(r.data); }
+    catch (e) { console.error(e); }
+  };
+  const fetchUsers = async () => {
+    try { const r = await axios.get(`${API_BASE}/api/users`, authHeader()); setUsers(r.data); }
+    catch (e) { console.error(e); }
+  };
 
-  // Persistent session — only redirect if no token at all
   useEffect(() => {
     if (!token()) { navigate('/login', { replace: true }); return; }
-    checkDb(); fetchProducts(); fetchReels();
+    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers();
   }, [navigate]);
 
   // ── Add product ──
@@ -110,17 +150,24 @@ const AdminPanel: React.FC = () => {
       fd.append('emoji', emoji);
       fd.append('isFeatured', String(isFeatured));
       fd.append('isNewArrival', String(isNewArrival));
+      fd.append('description', description);
+      fd.append('features', features);
+      fd.append('additionalInfo', additionalInfo);
+      fd.append('models', models);
       if (imageFile) fd.append('image', imageFile);
+      galleryFiles.forEach(f => fd.append('gallery', f));
+
       await axios.post(`${API_BASE}/api/products`, fd, {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
       });
       setName(''); setPrice(''); setImageColor('#FFC400'); setBadge(''); setEmoji('🧸');
-      setIsFeatured(false); setIsNewArrival(false); setImageFile(null); setImagePreview('');
+      setIsFeatured(false); setIsNewArrival(false); 
+      setDescription(''); setFeatures(''); setAdditionalInfo(''); setModels('');
+      setImageFile(null); setImagePreview(''); setGalleryFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setProductMsg('✅ Toy added!'); fetchProducts();
     } catch (err) {
       setProductMsg('❌ Failed to add toy.');
-      // Only force logout if login itself fails, not on product API errors
     } finally { setUploading(false); }
   };
 
@@ -129,7 +176,9 @@ const AdminPanel: React.FC = () => {
     setEditingProduct(p); setEName(p.name); setEPrice(p.price);
     setEColor(p.imageColor); setEBadge(p.badge); setEEmoji(p.emoji || '🧸');
     setEFeatured(p.isFeatured); setENewArrival(p.isNewArrival);
-    setEImageFile(null); setEImagePreview(p.imageUrl || ''); setEditMsg('');
+    setEDescription(p.description || ''); setEFeatures(p.features || '');
+    setEAdditionalInfo(p.additionalInfo || ''); setEModels(p.models || '');
+    setEImageFile(null); setEImagePreview(p.imageUrl || ''); setEGalleryFiles([]); setEditMsg('');
   };
 
   // ── Save edit ──
@@ -143,7 +192,13 @@ const AdminPanel: React.FC = () => {
       fd.append('emoji', eEmoji);
       fd.append('isFeatured', String(eFeatured));
       fd.append('isNewArrival', String(eNewArrival));
+      fd.append('description', eDescription);
+      fd.append('features', eFeatures);
+      fd.append('additionalInfo', eAdditionalInfo);
+      fd.append('models', eModels);
       if (eImageFile) fd.append('image', eImageFile);
+      eGalleryFiles.forEach(f => fd.append('gallery', f));
+
       await axios.put(`${API_BASE}/api/products/${editingProduct._id}`, fd, {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
       });
@@ -173,20 +228,18 @@ const AdminPanel: React.FC = () => {
       fd.append('youtubeUrl', reelUrl);
       fd.append('likes', String(parseInt(reelLikes)||0));
       if (reelThumbFile) fd.append('thumbnail', reelThumbFile);
+      if (reelVideoFile) fd.append('video', reelVideoFile);
       await axios.post(`${API_BASE}/api/reels`, fd, {
-        headers: {
-          Authorization: `Bearer ${token()}`,
-          // DO NOT set Content-Type — let browser set it with boundary for multipart
-        },
+        headers: { Authorization: `Bearer ${token()}` },
       });
       setReelTitle(''); setReelUrl(''); setReelLikes('0');
       setReelThumbFile(null); setReelThumbPreview('');
+      setReelVideoFile(null); setReelVideoName('');
       if (reelThumbRef.current) reelThumbRef.current.value = '';
+      if (reelVideoRef.current) reelVideoRef.current.value = '';
       setReelMsg('✅ Reel added!'); fetchReels();
     } catch (err: any) {
-      const detail = err?.response?.data?.detail || err?.response?.data?.message || '';
-      setReelMsg(`❌ Failed to add reel. ${detail}`);
-      console.error('Add reel error:', err?.response?.data);
+      setReelMsg(`❌ Failed to add reel.`);
     }
   };
 
@@ -194,7 +247,7 @@ const AdminPanel: React.FC = () => {
   const openEditReel = (r: Reel) => {
     setEditingReel(r); setEReelTitle(r.title);
     setEReelUrl(r.youtubeUrl); setEReelLikes(String(r.likes)); setEReelMsg('');
-    setEReelThumbFile(null);
+    setEReelThumbFile(null); setEReelVideoFile(null);
   };
 
   // ── Save edit reel ──
@@ -206,6 +259,7 @@ const AdminPanel: React.FC = () => {
       fd.append('youtubeUrl', eReelUrl);
       fd.append('likes', String(parseInt(eReelLikes)||0));
       if (eReelThumbFile) fd.append('thumbnail', eReelThumbFile);
+      if (eReelVideoFile) fd.append('video', eReelVideoFile);
       await axios.put(`${API_BASE}/api/reels/${editingReel._id}`, fd, {
         headers: { Authorization: `Bearer ${token()}` },
       });
@@ -220,10 +274,16 @@ const AdminPanel: React.FC = () => {
     catch (e) { console.error(e); }
   };
 
+  const updateOrderStatus = async (id: string, newStatus: string) => {
+    try { 
+      await axios.patch(`${API_BASE}/api/orders/${id}/status`, { status: newStatus }, authHeader()); 
+      fetchOrders(); 
+    } catch (e) { console.error(e); }
+  };
+
   const handleLogout = () => { localStorage.removeItem('token'); navigate('/login'); };
 
-  const featuredCount   = products.filter(p => p.isFeatured).length;
-  const newArrivalCount = products.filter(p => p.isNewArrival).length;
+  const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
 
   return (
     <div className="admin-page-wrapper">
@@ -253,9 +313,9 @@ const AdminPanel: React.FC = () => {
         <div className="admin-stats-row">
           {[
             { icon: '🧸', num: products.length,  label: 'Total Toys' },
-            { icon: '⭐', num: featuredCount,     label: 'Featured' },
-            { icon: '🆕', num: newArrivalCount,   label: 'New Arrivals' },
-            { icon: '🎬', num: reels.length,      label: 'Reels' },
+            { icon: '💰', num: `₹${totalRevenue.toLocaleString()}`, label: 'Total Revenue' },
+            { icon: '📦', num: orders.length,     label: 'Total Orders' },
+            { icon: '👥', num: users.length,      label: 'Total Users' },
           ].map(s => (
             <div key={s.label} className="admin-stat-card">
               <span className="admin-stat-icon">{s.icon}</span>
@@ -277,6 +337,11 @@ const AdminPanel: React.FC = () => {
                   onChange={e => setEName(e.target.value)} required className="playful-input" />
                 <input type="text" placeholder="Price (e.g. ₹499)" value={ePrice}
                   onChange={e => setEPrice(e.target.value)} required className="playful-input" />
+                
+                <textarea placeholder="Description" value={eDescription} onChange={e => setEDescription(e.target.value)} className="playful-input" />
+                <textarea placeholder="Features (one per line)" value={eFeatures} onChange={e => setEFeatures(e.target.value)} className="playful-input" />
+                <textarea placeholder="Additional Info" value={eAdditionalInfo} onChange={e => setEAdditionalInfo(e.target.value)} className="playful-input" />
+                <input type="text" placeholder="Models (comma separated, e.g. Aqua, Fire)" value={eModels} onChange={e => setEModels(e.target.value)} className="playful-input" />
 
                 {/* Image */}
                 <div className="image-upload-area">
@@ -288,11 +353,18 @@ const AdminPanel: React.FC = () => {
                     )}
                     <label className="image-drop-zone" htmlFor="edit-toy-image" style={{ flex: 1, padding: '0.8rem' }}>
                       <Upload size={20} color="var(--color-purple)" />
-                      <span style={{ fontSize: '0.82rem' }}>Replace image (optional)</span>
+                      <span style={{ fontSize: '0.82rem' }}>Replace main image</span>
                     </label>
                     <input id="edit-toy-image" ref={editFileRef} type="file" accept="image/*" style={{ display:'none' }}
                       onChange={e => { const f = e.target.files?.[0]; if(f){ setEImageFile(f); setEImagePreview(URL.createObjectURL(f)); }}} />
                   </div>
+                </div>
+
+                {/* Gallery */}
+                <div className="image-upload-area">
+                  <label className="field-label">Gallery Images (Replace all)</label>
+                  <input type="file" multiple accept="image/*" onChange={e => setEGalleryFiles(Array.from(e.target.files || []).slice(0, 4))} />
+                  <div style={{fontSize:'0.8rem', color:'#666'}}>{eGalleryFiles.length} files selected</div>
                 </div>
 
                 {/* Emoji */}
@@ -356,8 +428,13 @@ const AdminPanel: React.FC = () => {
               <input type="text" placeholder="Price (e.g. ₹499)" value={price}
                 onChange={e => setPrice(e.target.value)} required className="playful-input" />
 
+              <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
+              <textarea placeholder="Features (one per line)" value={features} onChange={e => setFeatures(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
+              <textarea placeholder="Additional Info" value={additionalInfo} onChange={e => setAdditionalInfo(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
+              <input type="text" placeholder="Models (comma separated, e.g. Aqua, Fire)" value={models} onChange={e => setModels(e.target.value)} className="playful-input" />
+
               <div className="image-upload-area">
-                <label className="field-label">Toy Image (optional)</label>
+                <label className="field-label">Main Toy Image</label>
                 {imagePreview ? (
                   <div className="image-preview-box">
                     <img src={imagePreview} alt="Preview" className="image-preview" />
@@ -368,13 +445,18 @@ const AdminPanel: React.FC = () => {
                 ) : (
                   <label className="image-drop-zone" htmlFor="toy-image-input">
                     <Upload size={28} color="var(--color-purple)" />
-                    <span>Click to upload image</span>
-                    <span className="image-drop-hint">JPG, PNG, WEBP — max 5MB</span>
+                    <span>Click to upload main image</span>
                   </label>
                 )}
                 <input id="toy-image-input" ref={fileInputRef} type="file" accept="image/*"
                   onChange={e => { const f=e.target.files?.[0]; if(f){setImageFile(f);setImagePreview(URL.createObjectURL(f));} }}
                   style={{ display:'none' }} />
+              </div>
+
+              <div className="image-upload-area">
+                <label className="field-label">Gallery Images (up to 4)</label>
+                <input type="file" multiple accept="image/*" onChange={e => setGalleryFiles(Array.from(e.target.files || []).slice(0, 4))} />
+                <div style={{fontSize:'0.8rem', color:'#666', marginTop:'0.3rem'}}>{galleryFiles.length} files selected</div>
               </div>
 
               <div className="emoji-picker-row">
@@ -480,11 +562,11 @@ const AdminPanel: React.FC = () => {
                 <input type="number" placeholder="Likes count" value={reelLikes}
                   onChange={e => setReelLikes(e.target.value)} min="0" className="playful-input" />
 
-                {/* Thumbnail upload — required for Instagram, optional for YouTube */}
+                {/* Thumbnail upload */}
                 <div className="image-upload-area">
                   <label className="field-label">
                     Thumbnail Image
-                    <span style={{fontWeight:400,color:'#999',marginLeft:'0.4rem'}}>(required for Instagram reels)</span>
+                    <span style={{fontWeight:400,color:'#999',marginLeft:'0.4rem'}}>(optional — auto-generated for YouTube)</span>
                   </label>
                   {reelThumbPreview ? (
                     <div className="image-preview-box">
@@ -502,6 +584,22 @@ const AdminPanel: React.FC = () => {
                   )}
                   <input id="reel-thumb-input" ref={reelThumbRef} type="file" accept="image/*"
                     onChange={e => { const f=e.target.files?.[0]; if(f){setReelThumbFile(f);setReelThumbPreview(URL.createObjectURL(f));} }}
+                    style={{display:'none'}} />
+                </div>
+
+                {/* Video upload — for Instagram reels or any direct video */}
+                <div className="image-upload-area">
+                  <label className="field-label">
+                    Upload Video File
+                    <span style={{fontWeight:400,color:'#999',marginLeft:'0.4rem'}}>(MP4/MOV — plays directly in the card)</span>
+                  </label>
+                  <label className={`image-drop-zone${reelVideoName ? ' image-drop-zone--has-file' : ''}`} htmlFor="reel-video-input" style={{padding:'0.8rem'}}>
+                    <Upload size={22} color={reelVideoName ? 'var(--color-purple)' : '#aaa'} />
+                    <span style={{fontSize:'0.82rem'}}>{reelVideoName || 'Upload video (MP4, MOV, WEBM)'}</span>
+                    {reelVideoName && <span style={{fontSize:'0.72rem',color:'green'}}>✅ Ready to upload</span>}
+                  </label>
+                  <input id="reel-video-input" ref={reelVideoRef} type="file" accept="video/*"
+                    onChange={e => { const f=e.target.files?.[0]; if(f){setReelVideoFile(f);setReelVideoName(f.name);} }}
                     style={{display:'none'}} />
                 </div>
 
@@ -577,6 +675,105 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ══ ORDERS MANAGEMENT ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>📦</span> Order Management</div>
+        <div className="admin-list-container">
+          <h2 className="text-purple" style={{ marginBottom: '1.5rem' }}>Recent Orders ({orders.length})</h2>
+            
+            {orders.length === 0 ? (
+              <p style={{color:'#888', padding: '1rem 0'}}>No orders yet.</p>
+            ) : (
+              <div className="table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID & Date</th>
+                      <th>Customer Details</th>
+                      <th>Items Ordered</th>
+                      <th>Total Amount</th>
+                      <th>Status Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(o => (
+                      <tr key={o._id}>
+                        <td>
+                          <strong>#{o._id.slice(-6).toUpperCase()}</strong>
+                          <div className="table-subtext">{new Date(o.createdAt).toLocaleDateString()}</div>
+                        </td>
+                        <td>
+                          <strong>{o.customerInfo.name}</strong>
+                          <div className="table-subtext">{o.customerInfo.phone}</div>
+                          <div className="table-subtext">{o.customerInfo.address}, {o.customerInfo.city} - {o.customerInfo.pincode}</div>
+                        </td>
+                        <td>
+                          <div className="table-items-list">
+                            {o.items.map(item => (
+                              <div key={item._id} className="table-item-line">
+                                {item.quantity}x {item.name}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--color-pink)' }}>
+                          ₹{o.totalAmount.toLocaleString()}
+                        </td>
+                        <td>
+                          <select 
+                            className={`status-select status-${o.status.toLowerCase()}`}
+                            value={o.status} 
+                            onChange={(e) => updateOrderStatus(o._id, e.target.value)}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </div>
+
+        {/* ══ USER MANAGEMENT ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>👥</span> User Management</div>
+        <div className="admin-list-container">
+          <h2 className="text-blue" style={{ marginBottom: '1.5rem' }}>Registered Users ({users.length})</h2>
+            
+            {users.length === 0 ? (
+              <p style={{color:'#888', padding: '1rem 0'}}>No users found.</p>
+            ) : (
+              <div className="table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(u => (
+                      <tr key={u._id}>
+                        <td><strong>{u.name}</strong></td>
+                        <td>{u.email}</td>
+                        <td>{u.phone || '-'}</td>
+                        <td>
+                          <span className={`role-badge role-${u.role}`}>
+                            {u.role.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
         </div>
 
       </div>

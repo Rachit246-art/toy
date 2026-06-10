@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { ShoppingBag, Star, Sparkles, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ShoppingBag, Star, Sparkles, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -23,26 +23,7 @@ interface Product {
   isNewArrival: boolean;
 }
 
-/* ── Static fallback New Arrivals (shown when DB has none marked) ── */
-const STATIC_NEW_ARRIVALS = [
-  { id: 'n1', emoji: '🚀', color: '#C8B6FF', name: 'Space Rocket Jr.', price: '₹649' },
-  { id: 'n2', emoji: '🐉', color: '#B5EAD7', name: 'Dragon Flame',     price: '₹849' },
-  { id: 'n3', emoji: '🎠', color: '#FFDAC1', name: 'Carousel Pony',    price: '₹699' },
-  { id: 'n4', emoji: '🦊', color: '#FFB7B2', name: 'Foxy Tails',       price: '₹599' },
-  { id: 'n5', emoji: '🐙', color: '#AED9E0', name: 'Octo Squish',      price: '₹729' },
-  { id: 'n6', emoji: '🦋', color: '#E2F0CB', name: 'Flutter Wings',    price: '₹549' },
-  { id: 'n7', emoji: '🐻', color: '#FFEAA7', name: 'Honey Bear',       price: '₹679' },
-  { id: 'n8', emoji: '🦁', color: '#FFD6A5', name: 'Leo the Lion',     price: '₹719' },
-];
 
-/* ── Static fallback Featured (shown when DB has none marked) ── */
-const STATIC_FEATURED = [
-  { id: 'f1', emoji: '🦕', color: '#A8E6CF', badge: '⭐ Best Seller', name: 'Dino Roar Rex',   desc: 'Our most-loved 3D printed dinosaur — vibrant, durable, and roar-ready. Perfect for little adventurers aged 3+.', price: '₹899', stars: 5 },
-  { id: 'f2', emoji: '🤖', color: '#B5D5FF', badge: '🔥 Hot Pick',    name: 'Robo Buddy X',    desc: 'A friendly robot companion with movable arms. Kids love building stories around him!',                             price: '₹749', stars: 5 },
-  { id: 'f3', emoji: '🦄', color: '#FFD6E8', badge: '💜 Fan Fave',    name: 'Sparkle Unicorn', desc: "Magical, glittery, and full of rainbow energy. Every child's dream companion.",                                   price: '₹799', stars: 4 },
-  { id: 'f4', emoji: '🐬', color: '#B2EBF2', badge: '🌊 New Hit',     name: 'Dolphin Dash',    desc: 'Smooth, sleek, and super fun — this 3D printed dolphin is a bath-time favourite!',                               price: '₹669', stars: 4 },
-  { id: 'f5', emoji: '🦸', color: '#E1BEE7', badge: '💥 Top Rated',   name: 'Mini Hero Pack',  desc: 'A set of three tiny superheroes ready to save the day. Mix, match, and play!',                                   price: '₹999', stars: 5 },
-];
 
 /* ── Reusable star rating ── */
 const StarRating: React.FC<{ count: number }> = ({ count }) => (
@@ -108,10 +89,10 @@ const Home: React.FC = () => {
   const arrivalVisible = 4;
   const featuredVisible = 1;
   const arrivals = useCarousel(
-    newArrivals.length   || STATIC_NEW_ARRIVALS.length, arrivalVisible, 2800
+    newArrivals.length, arrivalVisible, 2800
   );
   const featured = useCarousel(
-    featuredProducts.length || STATIC_FEATURED.length, featuredVisible, 4000
+    featuredProducts.length, featuredVisible, 4000
   );
 
   useEffect(() => {
@@ -131,9 +112,7 @@ const Home: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  /* Use DB data if available, else static fallback */
-  const displayArrivals  = newArrivals.length   > 0 ? newArrivals   : null;
-  const displayFeatured  = featuredProducts.length > 0 ? featuredProducts : null;
+
 
   return (
     <div className="home-page">
@@ -169,9 +148,9 @@ const Home: React.FC = () => {
               className="arrivals-track"
               style={{ transform: `translateX(calc(-${arrivals.index} * (260px + 1.5rem)))` }}
             >
-              {(displayArrivals || STATIC_NEW_ARRIVALS).map((item: any) => (
-                <div key={item._id || item.id} className="arrival-card">
-                  <div className="arrival-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : (item.imageColor || item.color) }}>
+              {newArrivals.length > 0 ? newArrivals.map((item: any) => (
+                <div key={item._id} className="arrival-card" onClick={() => navigate(`/product/${item._id}`)} style={{ cursor: 'pointer' }}>
+                  <div className="arrival-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : item.imageColor }}>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} />
                     ) : (
@@ -182,25 +161,37 @@ const Home: React.FC = () => {
                   <div className="arrival-body">
                     <h4 className="arrival-name">{item.name}</h4>
                     <p className="arrival-price">{item.price}</p>
-                    <button className="btn-playful btn-secondary arrival-btn" onClick={() => navigate('/shop')}>
+                    <button className="btn-playful btn-secondary arrival-btn" onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart({
+                        _id: item._id,
+                        name: item.name,
+                        price: item.price,
+                        imageColor: item.imageColor,
+                        emoji: item.emoji || '🧸',
+                        imageUrl: item.imageUrl,
+                      });
+                    }}>
                       <ShoppingBag size={14} /> Add to Box
                     </button>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: '2rem', textAlign: 'center', width: '100%', color: '#888' }}>No new arrivals yet.</div>
+              )}
             </div>
           </div>
 
           {/* Dots */}
           <div className="slider-dots">
-            {(displayArrivals || STATIC_NEW_ARRIVALS).map((_: any, i: number) => (
-              <button
-                key={i}
-                className={`dot${arrivals.index === i ? ' dot-active' : ''}`}
-                onClick={() => arrivals.setIndex(i)}
-                aria-label={`Go to slide ${i + 1}`}
-              />
-            ))}
+            {newArrivals.map((_: any, i: number) => (
+                <button
+                  key={i}
+                  className={`dot${arrivals.index === i ? ' dot-active' : ''}`}
+                  onClick={() => arrivals.setIndex(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
           </div>
         </div>
       </section>
@@ -236,9 +227,9 @@ const Home: React.FC = () => {
               className="featured-track"
               style={{ transform: `translateX(calc(-${featured.index} * 100%))` }}
             >
-              {(displayFeatured || STATIC_FEATURED).map((item: any) => (
-                <div key={item._id || item.id} className="featured-slide">
-                  <div className="featured-slide-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : (item.imageColor || item.color) }}>
+              {featuredProducts.length > 0 ? featuredProducts.map((item: any) => (
+                <div key={item._id} className="featured-slide" onClick={() => navigate(`/product/${item._id}`)} style={{ cursor: 'pointer' }}>
+                  <div className="featured-slide-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : item.imageColor }}>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name}
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -256,7 +247,17 @@ const Home: React.FC = () => {
                       <button
                         className="btn-playful btn-primary"
                         style={{ backgroundColor: 'var(--color-pink)', color: 'white' }}
-                        onClick={() => navigate('/shop')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart({
+                            _id: item._id,
+                            name: item.name,
+                            price: item.price,
+                            imageColor: item.imageColor,
+                            emoji: item.emoji || '🧸',
+                            imageUrl: item.imageUrl,
+                          });
+                        }}
                       >
                         <ShoppingBag size={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />
                         Add to Box
@@ -264,20 +265,22 @@ const Home: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: '2rem', textAlign: 'center', width: '100%', color: '#888' }}>No featured toys yet.</div>
+              )}
             </div>
           </div>
 
           {/* Dots */}
           <div className="slider-dots">
-            {(displayFeatured || STATIC_FEATURED).map((_: any, i: number) => (
-              <button
-                key={i}
-                className={`dot dot-purple${featured.index === i ? ' dot-active-purple' : ''}`}
-                onClick={() => featured.setIndex(i)}
-                aria-label={`Go to slide ${i + 1}`}
-              />
-            ))}
+            {featuredProducts.map((_: any, i: number) => (
+                <button
+                  key={i}
+                  className={`dot dot-purple${featured.index === i ? ' dot-active-purple' : ''}`}
+                  onClick={() => featured.setIndex(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
           </div>
         </div>
       </section>
@@ -297,6 +300,7 @@ const Home: React.FC = () => {
             products.map(product => (
               <ProductCard
                 key={product._id}
+                _id={product._id}
                 name={product.name}
                 price={product.price}
                 imageColor={product.imageColor}
@@ -310,6 +314,7 @@ const Home: React.FC = () => {
                     price: product.price,
                     imageColor: product.imageColor,
                     emoji: product.emoji || '',
+                    imageUrl: product.imageUrl,
                   })
                 }
               />
