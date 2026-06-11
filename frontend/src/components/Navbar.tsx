@@ -3,6 +3,7 @@ import { ShoppingCart, Menu, Search, Star, User, X, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import API_BASE from '../config';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -15,7 +16,7 @@ const Navbar: React.FC = () => {
   const [announcement2, setAnnouncement2] = useState('🎉 USE CODE WIGGLE10 FOR 10% OFF.');
 
   useEffect(() => {
-    fetch('/api/settings/announcements')
+    fetch(`${API_BASE}/api/settings/announcements`)
       .then(res => res.json())
       .then(data => {
         if (data.announcementText1) setAnnouncement1(data.announcementText1);
