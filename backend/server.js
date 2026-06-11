@@ -132,6 +132,23 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 
+const CouponSchema = new mongoose.Schema({
+  code: { type: String, required: true, unique: true, uppercase: true },
+  discountAmount: { type: Number, required: true },
+  discountType: { type: String, enum: ['fixed', 'percentage'], default: 'fixed' },
+  expiryDate: { type: Date, default: null },
+  maxUsers: { type: Number, default: null },
+  currentUses: { type: Number, default: 0 },
+  isPublic: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+const Coupon = mongoose.model('Coupon', CouponSchema);
+
+const SiteSettingsSchema = new mongoose.Schema({
+  showcaseVideoUrl: { type: String, default: "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1" }
+});
+const SiteSettings = mongoose.model('SiteSettings', SiteSettingsSchema);
+
 const OrderSchema = new mongoose.Schema({
   customerInfo: {
     name: { type: String, required: true },
@@ -146,7 +163,18 @@ const OrderSchema = new mongoose.Schema({
     name: String,
     price: String,
     quantity: Number,
-    imageUrl: String
+    imageUrl: String,
+    isBundle: { type: Boolean, default: false },
+    bundleDetails: {
+      type: { type: String },
+      packSize: { type: Number },
+      size: { type: String },
+      items: [{
+        name: String,
+        qty: Number,
+        imageUrl: String
+      }]
+    }
   }],
   totalAmount: { type: Number, required: true },
   status: { type: String, default: 'Pending', enum: ['Pending', 'Shipped', 'Delivered'] },
@@ -526,6 +554,109 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// ── Coupons Routes ──
+// 12b. Get Coupons (Admin gets all, Users get public active ones)
+app.get('/api/coupons', async (req, res) => {
+  try {
+    // Check if admin is requesting
+    const authHeader = req.headers['authorization'] || req.headers['Authorization'] || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    let isAdmin = false;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role === 'admin') isAdmin = true;
+      } catch (e) {}
+    }
+
+    if (isAdmin) {
+      const coupons = await Coupon.find().sort({ createdAt: -1 });
+      return res.json(coupons);
+    } else {
+      // Public view: only show public coupons that are valid
+      const now = new Date();
+      const coupons = await Coupon.find({
+        isPublic: true,
+        $or: [{ expiryDate: null }, { expiryDate: { $gt: now } }]
+      }).sort({ createdAt: -1 });
+      
+      // Filter out those that reached max users
+      const validCoupons = coupons.filter(c => c.maxUsers === null || c.currentUses < c.maxUsers);
+      return res.json(validCoupons);
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 12c. Create Coupon (Admin Only)
+app.post('/api/coupons', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { code, discountAmount, discountType, expiryDate, maxUsers, isPublic } = req.body;
+    if (!code || !discountAmount) return res.status(400).json({ message: 'Code and amount are required' });
+    
+    const existing = await Coupon.findOne({ code: code.toUpperCase() });
+    if (existing) return res.status(400).json({ message: 'Coupon code already exists' });
+
+    const newCoupon = new Coupon({
+      code: code.toUpperCase(),
+      discountAmount,
+      discountType: discountType || 'fixed',
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
+      maxUsers: maxUsers ? parseInt(maxUsers) : null,
+      isPublic: isPublic === true || isPublic === 'true'
+    });
+    
+    const saved = await newCoupon.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error('Create coupon error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 12d. Delete Coupon (Admin Only)
+app.delete('/api/coupons/:id', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    await Coupon.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Coupon removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 12e. Validate and Apply Coupon (Public)
+app.post('/api/coupons/validate', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ message: 'Code is required' });
+    
+    const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+    if (!coupon) return res.status(404).json({ message: 'Invalid coupon code' });
+    
+    // Check expiry
+    if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+      return res.status(400).json({ message: 'Coupon has expired' });
+    }
+    
+    // Check usage limits
+    if (coupon.maxUsers !== null && coupon.currentUses >= coupon.maxUsers) {
+      return res.status(400).json({ message: 'Coupon usage limit reached' });
+    }
+    
+    res.json({ 
+      valid: true, 
+      code: coupon.code,
+      discountAmount: coupon.discountAmount,
+      discountType: coupon.discountType 
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // 13. Get All Orders (Admin Only)
 app.get('/api/orders', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
@@ -566,6 +697,38 @@ app.patch('/api/orders/:id/status', authMiddleware, async (req, res) => {
       { new: true }
     );
     res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ── Site Settings Routes ──
+// 15. Get Showcase Video (Public)
+app.get('/api/settings/showcase-video', async (req, res) => {
+  try {
+    let settings = await SiteSettings.findOne();
+    if (!settings) {
+      settings = await SiteSettings.create({});
+    }
+    res.json({ showcaseVideoUrl: settings.showcaseVideoUrl });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 16. Update Showcase Video (Admin Only)
+app.put('/api/settings/showcase-video', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { showcaseVideoUrl } = req.body;
+    let settings = await SiteSettings.findOne();
+    if (!settings) {
+      settings = await SiteSettings.create({ showcaseVideoUrl });
+    } else {
+      settings.showcaseVideoUrl = showcaseVideoUrl;
+      await settings.save();
+    }
+    res.json({ showcaseVideoUrl: settings.showcaseVideoUrl });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

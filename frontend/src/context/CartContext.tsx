@@ -9,6 +9,13 @@ export interface CartItem {
   emoji: string;
   quantity: number;
   imageUrl?: string;
+  isBundle?: boolean;
+  bundleDetails?: {
+    type: string;
+    packSize: number;
+    size?: string;
+    items: { name: string; qty: number; imageUrl?: string }[];
+  };
 }
 
 interface CartContextType {
@@ -28,7 +35,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCartItems(prev => {
-      const existing = prev.find(i => i._id === item._id);
+      // For bundles, we check if an identical bundle already exists
+      if (item.isBundle) {
+        const existingBundle = prev.find(i => 
+          i.isBundle && 
+          i.bundleDetails?.type === item.bundleDetails?.type &&
+          i.bundleDetails?.packSize === item.bundleDetails?.packSize &&
+          i.bundleDetails?.size === item.bundleDetails?.size &&
+          JSON.stringify(i.bundleDetails?.items) === JSON.stringify(item.bundleDetails?.items)
+        );
+        if (existingBundle) {
+          return prev.map(i => i._id === existingBundle._id ? { ...i, quantity: i.quantity + 1 } : i);
+        }
+        return [...prev, { ...item, quantity: 1, _id: `bundle-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` }];
+      }
+
+      const existing = prev.find(i => i._id === item._id && !i.isBundle);
       if (existing) {
         return prev.map(i => i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i);
       }

@@ -12,6 +12,7 @@ import WishlistPage from './pages/WishlistPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import UserDashboard from './pages/UserDashboard';
+import BundlePage from './pages/BundlePage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               <Route path="/product/:id" element={<ProductDetailsPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/profile" element={<UserDashboard />} />
+              <Route path="/bundle" element={<BundlePage />} />
             </Routes>
           </div>
         </Router>

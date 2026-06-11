@@ -72,7 +72,7 @@ function useCarousel(total: number, visibleCount: number, autoMs = 3000) {
   const handleNext = () => { next(); reset(); };
   const handlePrev = () => { prev(); reset(); };
 
-  return { index, handleNext, handlePrev, setIndex: (i: number) => { setIndex(i); reset(); } };
+  return { index, handleNext, handlePrev, setIndex: (i: number) => { setIndex(i); reset(); }, maxIndex };
 }
 
 /* ══════════════════════════════════════════
@@ -82,11 +82,30 @@ const Home: React.FC = () => {
   const [products, setProducts]         = useState<Product[]>([]);
   const [featuredProducts, setFeatured] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals]   = useState<Product[]>([]);
+  const [showcaseUrl, setShowcaseUrl]   = useState('https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1');
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  /* carousel state — sizes update once data loads */
-  const arrivalVisible = 4;
+  const [arrivalVisible, setArrivalVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 600) return 1;
+      if (window.innerWidth < 900) return 2;
+      if (window.innerWidth < 1200) return 3;
+    }
+    return 4;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 600) setArrivalVisible(1);
+      else if (window.innerWidth < 900) setArrivalVisible(2);
+      else if (window.innerWidth < 1200) setArrivalVisible(3);
+      else setArrivalVisible(4);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const featuredVisible = 1;
   const arrivals = useCarousel(
     newArrivals.length, arrivalVisible, 2800
@@ -109,6 +128,15 @@ const Home: React.FC = () => {
     // New arrivals from DB
     axios.get(`${API_BASE}/api/products/new-arrivals`)
       .then(res => setNewArrivals(res.data))
+      .catch(() => {});
+
+    // Showcase video URL
+    axios.get(`${API_BASE}/api/settings/showcase-video`)
+      .then(res => {
+        if (res.data && res.data.showcaseVideoUrl) {
+          setShowcaseUrl(res.data.showcaseVideoUrl);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -184,7 +212,7 @@ const Home: React.FC = () => {
 
           {/* Dots */}
           <div className="slider-dots">
-            {newArrivals.map((_: any, i: number) => (
+            {newArrivals.length > 0 && Array.from({ length: arrivals.maxIndex + 1 }).map((_, i) => (
                 <button
                   key={i}
                   className={`dot${arrivals.index === i ? ' dot-active' : ''}`}
@@ -273,7 +301,7 @@ const Home: React.FC = () => {
 
           {/* Dots */}
           <div className="slider-dots">
-            {featuredProducts.map((_: any, i: number) => (
+            {featuredProducts.length > 0 && Array.from({ length: featured.maxIndex + 1 }).map((_, i) => (
                 <button
                   key={i}
                   className={`dot dot-purple${featured.index === i ? ' dot-active-purple' : ''}`}
@@ -367,12 +395,8 @@ const Home: React.FC = () => {
 
           <div className="video-player-side">
             <div className="video-frame-wrapper">
-              {/*
-                Replace the src with your actual YouTube embed URL:
-                https://www.youtube.com/embed/YOUR_VIDEO_ID?rel=0&modestbranding=1
-              */}
               <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+                src={`${showcaseUrl}${showcaseUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&loop=1&playlist=${showcaseUrl.split('embed/')[1]?.split('?')[0] || ''}`}
                 title="Kids playing with Pigglitz 3D printed toys"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle, Truck, Package, ArrowLeft } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -11,6 +11,11 @@ import './CheckoutPage.css';
 const CheckoutPage: React.FC = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const appliedCoupon = location.state?.appliedCoupon || null;
+  const discountAmount = location.state?.discountAmount || 0;
+  const finalTotal = location.state?.finalTotal || cartTotal;
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -45,9 +50,11 @@ const CheckoutPage: React.FC = () => {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          imageUrl: item.imageUrl
+          imageUrl: item.imageUrl,
+          isBundle: item.isBundle || false,
+          bundleDetails: item.bundleDetails || undefined
         })),
-        totalAmount: cartTotal
+        totalAmount: finalTotal
       });
 
       setOrderSuccess(true);
@@ -175,6 +182,11 @@ const CheckoutPage: React.FC = () => {
                   </div>
                   <div className="summary-item-info">
                     <h4>{item.name}</h4>
+                    {item.isBundle && item.bundleDetails && (
+                      <div style={{ fontSize: '0.75rem', color: '#666', marginBottom: '4px' }}>
+                        {item.bundleDetails.type} ({item.bundleDetails.packSize})
+                      </div>
+                    )}
                     <span>Qty: {item.quantity}</span>
                   </div>
                   <div className="summary-item-price">
@@ -189,6 +201,12 @@ const CheckoutPage: React.FC = () => {
                 <span>Subtotal</span>
                 <span>₹{cartTotal.toLocaleString()}</span>
               </div>
+              {appliedCoupon && (
+                <div className="calc-row text-orange">
+                  <span>Discount ({appliedCoupon.code})</span>
+                  <span>- ₹{discountAmount.toLocaleString()}</span>
+                </div>
+              )}
               <div className="calc-row">
                 <span>Shipping</span>
                 <span className="text-pink">FREE</span>
@@ -196,7 +214,7 @@ const CheckoutPage: React.FC = () => {
               <div className="calc-divider" />
               <div className="calc-row total">
                 <span>Total</span>
-                <span>₹{cartTotal.toLocaleString()}</span>
+                <span>₹{finalTotal.toLocaleString()}</span>
               </div>
             </div>
           </div>

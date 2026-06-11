@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Trash2, Film, Plus, Star, Zap, CheckCircle, Circle, Upload, X, Home, Edit2, Save } from 'lucide-react';
+import { Trash2, Film, Plus, Star, Zap, CheckCircle, Circle, Upload, X, Home, Edit2, Save, Ticket } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import API_BASE from '../config';
 import './AdminPanel.css';
@@ -35,6 +35,17 @@ interface UserAccount {
   phone: string;
   role: string;
 }
+interface Coupon {
+  _id: string;
+  code: string;
+  discountAmount: number;
+  discountType: 'fixed' | 'percentage';
+  expiryDate?: string | null;
+  maxUsers?: number | null;
+  currentUses: number;
+  isPublic: boolean;
+  createdAt: string;
+}
 
 const EMOJI_OPTIONS = ['🧸','🚀','🦕','🤖','🦄','🎠','🐉','🎪','🎡','🎨','🦊','🐙','🦋','🐻','🦁','🐬','🦸','🌟'];
 
@@ -43,12 +54,25 @@ function extractId(url: string): string {
   return m ? m[1] : '';
 }
 
+function formatYouTubeEmbed(url: string): string {
+  const id = extractId(url);
+  if (id) {
+    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+  }
+  return url;
+}
+
 const AdminPanel: React.FC = () => {
   const [dbStatus, setDbStatus] = useState<'checking'|'ok'|'error'>('checking');
   const [products, setProducts] = useState<Product[]>([]);
   const [reels, setReels] = useState<Reel[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [users, setUsers] = useState<UserAccount[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+
+  // ── Site Settings ──
+  const [showcaseUrl, setShowcaseUrl] = useState('');
+  const [showcaseMsg, setShowcaseMsg] = useState('');
 
   // ── Add product form ──
   const [name, setName] = useState('');
@@ -110,6 +134,15 @@ const AdminPanel: React.FC = () => {
   const [eReelThumbFile, setEReelThumbFile] = useState<File|null>(null);
   const [eReelVideoFile, setEReelVideoFile] = useState<File|null>(null);
 
+  // ── Add coupon form ──
+  const [couponCode, setCouponCode] = useState('');
+  const [couponAmount, setCouponAmount] = useState('');
+  const [couponType, setCouponType] = useState('fixed');
+  const [couponExpiry, setCouponExpiry] = useState('');
+  const [couponMaxUsers, setCouponMaxUsers] = useState('');
+  const [couponIsPublic, setCouponIsPublic] = useState(false);
+  const [couponMsg, setCouponMsg] = useState('');
+
   const navigate = useNavigate();
   const token = () => localStorage.getItem('token');
   const authHeader = () => ({ headers: { Authorization: `Bearer ${token()}` } });
@@ -134,10 +167,18 @@ const AdminPanel: React.FC = () => {
     try { const r = await axios.get(`${API_BASE}/api/users`, authHeader()); setUsers(r.data); }
     catch (e) { console.error(e); }
   };
+  const fetchCoupons = async () => {
+    try { const r = await axios.get(`${API_BASE}/api/coupons`, authHeader()); setCoupons(r.data); }
+    catch (e) { console.error(e); }
+  };
+  const fetchShowcaseVideo = async () => {
+    try { const r = await axios.get(`${API_BASE}/api/settings/showcase-video`); setShowcaseUrl(r.data.showcaseVideoUrl); }
+    catch (e) { console.error(e); }
+  };
 
   useEffect(() => {
     if (!token()) { navigate('/login', { replace: true }); return; }
-    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers();
+    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers(); fetchCoupons(); fetchShowcaseVideo();
   }, [navigate]);
 
   // ── Add product ──
@@ -279,6 +320,42 @@ const AdminPanel: React.FC = () => {
       await axios.patch(`${API_BASE}/api/orders/${id}/status`, { status: newStatus }, authHeader()); 
       fetchOrders(); 
     } catch (e) { console.error(e); }
+  };
+
+  const handleAddCoupon = async (e: React.FormEvent) => {
+    e.preventDefault(); setCouponMsg('');
+    try {
+      await axios.post(`${API_BASE}/api/coupons`, {
+        code: couponCode,
+        discountAmount: Number(couponAmount),
+        discountType: couponType,
+        expiryDate: couponExpiry || null,
+        maxUsers: couponMaxUsers ? Number(couponMaxUsers) : null,
+        isPublic: couponIsPublic
+      }, authHeader());
+      setCouponCode(''); setCouponAmount(''); setCouponType('fixed'); 
+      setCouponExpiry(''); setCouponMaxUsers(''); setCouponIsPublic(false);
+      setCouponMsg('✅ Coupon added!');
+      fetchCoupons();
+    } catch (err: any) {
+      setCouponMsg(err.response?.data?.message || '❌ Failed to add coupon.');
+    }
+  };
+
+  const handleDeleteCoupon = async (id: string) => {
+    if (!window.confirm('Delete this coupon?')) return;
+    try { await axios.delete(`${API_BASE}/api/coupons/${id}`, authHeader()); fetchCoupons(); }
+    catch (e) { console.error(e); }
+  };
+
+  const handleSaveShowcaseVideo = async (e: React.FormEvent) => {
+    e.preventDefault(); setShowcaseMsg('');
+    try {
+      const formattedUrl = formatYouTubeEmbed(showcaseUrl);
+      await axios.put(`${API_BASE}/api/settings/showcase-video`, { showcaseVideoUrl: formattedUrl }, authHeader());
+      setShowcaseUrl(formattedUrl);
+      setShowcaseMsg('✅ Showcase video updated!');
+    } catch { setShowcaseMsg('❌ Failed to update.'); }
   };
 
   const handleLogout = () => { localStorage.removeItem('token'); navigate('/login'); };
@@ -542,6 +619,26 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* ══ VIDEO REELS ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>📺</span> Main Showcase Video</div>
+        <div className="admin-content" style={{ marginBottom: '2rem' }}>
+          <div className="admin-form-container reel-form-container">
+            <h3 className="text-pink" style={{marginBottom:'1.2rem',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+              <Film size={18}/> Home Page Main Video
+            </h3>
+            <form onSubmit={handleSaveShowcaseVideo} className="admin-form">
+              <input type="url" placeholder="YouTube Embed URL"
+                value={showcaseUrl} onChange={e => setShowcaseUrl(e.target.value)} required className="playful-input" />
+              <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '0.5rem' }}>
+                <Save size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Save Video
+              </button>
+              {showcaseMsg && <p className="reel-msg">{showcaseMsg}</p>}
+            </form>
+            <div className="reel-url-hint">
+              <strong>Tip:</strong> Ensure you use an embed URL. E.g., <code>https://www.youtube.com/embed/dQw4w9WgXcQ</code>
+            </div>
+          </div>
+        </div>
+
         <div className="admin-reels-section">
           <div className="admin-reels-header">
             <Film size={26} color="var(--color-purple)" />
@@ -774,6 +871,98 @@ const AdminPanel: React.FC = () => {
                 </table>
               </div>
             )}
+        </div>
+
+        {/* ══ COUPONS MANAGEMENT ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>🎟️</span> Coupon Management</div>
+        <div className="admin-content">
+          <div className="admin-form-container reel-form-container">
+            <h3 className="text-pink" style={{marginBottom:'1.2rem',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+              <Plus size={18}/> Add New Coupon
+            </h3>
+            <form onSubmit={handleAddCoupon} className="admin-form">
+              <input type="text" placeholder="Coupon Code (e.g. WELCOME10)" value={couponCode}
+                onChange={e => setCouponCode(e.target.value.toUpperCase())} required className="playful-input" />
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <input type="number" placeholder="Discount Amount" value={couponAmount}
+                  onChange={e => setCouponAmount(e.target.value)} required className="playful-input" style={{ flex: 2 }} />
+                <select value={couponType} onChange={e => setCouponType(e.target.value)} className="playful-input" style={{ flex: 1 }}>
+                  <option value="fixed">Fixed (₹)</option>
+                  <option value="percentage">Percentage (%)</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="field-label" style={{ marginBottom: '0.2rem' }}>Expiry Date (Optional)</label>
+                  <input type="date" value={couponExpiry} onChange={e => setCouponExpiry(e.target.value)} className="playful-input" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="field-label" style={{ marginBottom: '0.2rem' }}>Max Uses (Optional)</label>
+                  <input type="number" placeholder="Leave empty for unlimited" value={couponMaxUsers} onChange={e => setCouponMaxUsers(e.target.value)} className="playful-input" />
+                </div>
+              </div>
+              
+              <label className={`flag-toggle${couponIsPublic?' flag-toggle--on':''}`} style={{ marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={couponIsPublic} onChange={e => setCouponIsPublic(e.target.checked)} />
+                <Ticket size={15} fill={couponIsPublic?'var(--color-pink)':'none'} color={couponIsPublic?'var(--color-pink)':'#aaa'} /> 
+                Make Public (Visible in user cart)
+              </label>
+
+              <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '1rem' }}>
+                <Plus size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Add Coupon
+              </button>
+              {couponMsg && <p className="reel-msg">{couponMsg}</p>}
+            </form>
+          </div>
+
+          <div className="admin-list-container reel-list-container">
+            <h3 className="text-blue" style={{marginBottom:'1.2rem'}}>Active Coupons ({coupons.length})</h3>
+            <div className="table-responsive">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Discount</th>
+                    <th>Visibility</th>
+                    <th>Usage / Expiry</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coupons.length === 0 ? (
+                    <tr><td colSpan={5} style={{textAlign:'center', padding:'1.5rem', color:'#888'}}>No coupons found.</td></tr>
+                  ) : (
+                    coupons.map(c => {
+                      const isExpired = c.expiryDate && new Date(c.expiryDate) < new Date();
+                      const isExhausted = c.maxUsers !== null && c.currentUses >= c.maxUsers;
+                      const isInactive = isExpired || isExhausted;
+                      return (
+                        <tr key={c._id} style={{ opacity: isInactive ? 0.6 : 1 }}>
+                          <td><strong style={{ letterSpacing: '1px' }}>{c.code}</strong></td>
+                          <td style={{ color: 'var(--color-pink)', fontWeight: 'bold' }}>
+                            {c.discountType === 'percentage' ? `${c.discountAmount}%` : `₹${c.discountAmount}`} OFF
+                          </td>
+                          <td>
+                            {c.isPublic ? <span className="flag-badge flag-featured">Public</span> : <span className="flag-badge" style={{background:'#eee', color:'#555'}}>Private</span>}
+                          </td>
+                          <td>
+                            <div className="table-subtext">Uses: {c.currentUses} {c.maxUsers ? `/ ${c.maxUsers}` : '(unlimited)'}</div>
+                            {c.expiryDate && <div className="table-subtext">Exp: {new Date(c.expiryDate).toLocaleDateString()}</div>}
+                            {isInactive && <span style={{color:'red', fontSize:'0.75rem', fontWeight:'bold'}}>{isExpired ? 'EXPIRED' : 'EXHAUSTED'}</span>}
+                          </td>
+                          <td>
+                            <button onClick={() => handleDeleteCoupon(c._id)} className="btn-playful btn-danger" style={{padding:'0.4rem 0.8rem'}}>
+                              <Trash2 size={15}/>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
       </div>
