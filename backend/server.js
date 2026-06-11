@@ -145,7 +145,9 @@ const CouponSchema = new mongoose.Schema({
 const Coupon = mongoose.model('Coupon', CouponSchema);
 
 const SiteSettingsSchema = new mongoose.Schema({
-  showcaseVideoUrl: { type: String, default: "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1" }
+  showcaseVideoUrl: { type: String, default: "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1" },
+  announcementText1: { type: String, default: "🔥 FREE SHIPPING ABOVE ₹1000" },
+  announcementText2: { type: String, default: "🎉 USE CODE WIGGLE10 FOR 10% OFF." }
 });
 const SiteSettings = mongoose.model('SiteSettings', SiteSettingsSchema);
 
@@ -729,6 +731,44 @@ app.put('/api/settings/showcase-video', authMiddleware, async (req, res) => {
       await settings.save();
     }
     res.json({ showcaseVideoUrl: settings.showcaseVideoUrl });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 17. Get Announcements (Public)
+app.get('/api/settings/announcements', async (req, res) => {
+  try {
+    let settings = await SiteSettings.findOne();
+    if (!settings) {
+      settings = await SiteSettings.create({});
+    }
+    res.json({ 
+      announcementText1: settings.announcementText1,
+      announcementText2: settings.announcementText2 
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 18. Update Announcements (Admin Only)
+app.put('/api/settings/announcements', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { announcementText1, announcementText2 } = req.body;
+    let settings = await SiteSettings.findOne();
+    if (!settings) {
+      settings = await SiteSettings.create({ announcementText1, announcementText2 });
+    } else {
+      settings.announcementText1 = announcementText1;
+      settings.announcementText2 = announcementText2;
+      await settings.save();
+    }
+    res.json({ 
+      announcementText1: settings.announcementText1,
+      announcementText2: settings.announcementText2 
+    });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

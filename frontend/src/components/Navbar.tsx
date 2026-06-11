@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Menu, Search, Star, User, X, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import './Navbar.css';
@@ -12,6 +11,18 @@ const Navbar: React.FC = () => {
   const { wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [announcement1, setAnnouncement1] = useState('🔥 FREE SHIPPING ABOVE ₹1000');
+  const [announcement2, setAnnouncement2] = useState('🎉 USE CODE WIGGLE10 FOR 10% OFF.');
+
+  useEffect(() => {
+    fetch('/api/settings/announcements')
+      .then(res => res.json())
+      .then(data => {
+        if (data.announcementText1) setAnnouncement1(data.announcementText1);
+        if (data.announcementText2) setAnnouncement2(data.announcementText2);
+      })
+      .catch(err => console.error("Error fetching announcements:", err));
+  }, []);
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -30,8 +41,21 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="navbar">
-      <div className="container navbar-container">
+    <>
+      <div className="announcement-bar">
+        <div className="announcement-content">
+          <span>{announcement1}</span>
+          <span>{announcement2}</span>
+          <span>{announcement1}</span>
+          <span>{announcement2}</span>
+          <span>{announcement1}</span>
+          <span>{announcement2}</span>
+          <span>{announcement1}</span>
+          <span>{announcement2}</span>
+        </div>
+      </div>
+      <nav className="navbar">
+        <div className="container navbar-container">
         {/* Logo */}
         <div className="navbar-logo" onClick={() => goTo('/')}>
           <span className="logo-text text-purple">Pigg</span>
@@ -126,6 +150,7 @@ const Navbar: React.FC = () => {
         </div>
       )}
     </nav>
+    </>
   );
 };
 

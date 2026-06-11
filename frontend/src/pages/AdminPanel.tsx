@@ -73,6 +73,9 @@ const AdminPanel: React.FC = () => {
   // ── Site Settings ──
   const [showcaseUrl, setShowcaseUrl] = useState('');
   const [showcaseMsg, setShowcaseMsg] = useState('');
+  const [announcementText1, setAnnouncementText1] = useState('');
+  const [announcementText2, setAnnouncementText2] = useState('');
+  const [announcementMsg, setAnnouncementMsg] = useState('');
 
   // ── Add product form ──
   const [name, setName] = useState('');
@@ -175,11 +178,29 @@ const AdminPanel: React.FC = () => {
     try { const r = await axios.get(`${API_BASE}/api/settings/showcase-video`); setShowcaseUrl(r.data.showcaseVideoUrl); }
     catch (e) { console.error(e); }
   };
+  const fetchAnnouncements = async () => {
+    try { 
+      const r = await axios.get(`${API_BASE}/api/settings/announcements`); 
+      setAnnouncementText1(r.data.announcementText1 || '');
+      setAnnouncementText2(r.data.announcementText2 || '');
+    } catch (e) { console.error(e); }
+  };
 
   useEffect(() => {
     if (!token()) { navigate('/login', { replace: true }); return; }
-    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers(); fetchCoupons(); fetchShowcaseVideo();
+    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers(); fetchCoupons(); fetchShowcaseVideo(); fetchAnnouncements();
   }, [navigate]);
+
+  const handleSaveAnnouncements = async (e: React.FormEvent) => {
+    e.preventDefault(); setAnnouncementMsg('');
+    try {
+      await axios.put(`${API_BASE}/api/settings/announcements`, 
+        { announcementText1, announcementText2 },
+        { headers: { Authorization: `Bearer ${token()}` } }
+      );
+      setAnnouncementMsg('✅ Announcements updated!');
+    } catch { setAnnouncementMsg('❌ Failed to update announcements.'); }
+  };
 
   // ── Add product ──
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -636,6 +657,26 @@ const AdminPanel: React.FC = () => {
             <div className="reel-url-hint">
               <strong>Tip:</strong> Ensure you use an embed URL. E.g., <code>https://www.youtube.com/embed/dQw4w9WgXcQ</code>
             </div>
+          </div>
+
+          <div className="admin-form-container reel-form-container">
+            <h3 className="text-pink" style={{marginBottom:'1.2rem',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+              <Ticket size={18}/> Top Announcements
+            </h3>
+            <form onSubmit={handleSaveAnnouncements} className="admin-form">
+              <label className="field-label">Announcement 1 (e.g. Free Shipping)</label>
+              <input type="text" placeholder="Announcement 1"
+                value={announcementText1} onChange={e => setAnnouncementText1(e.target.value)} required className="playful-input" />
+                
+              <label className="field-label">Announcement 2 (e.g. Coupon Code)</label>
+              <input type="text" placeholder="Announcement 2"
+                value={announcementText2} onChange={e => setAnnouncementText2(e.target.value)} required className="playful-input" />
+                
+              <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '0.5rem' }}>
+                <Save size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Save Announcements
+              </button>
+              {announcementMsg && <p className="reel-msg">{announcementMsg}</p>}
+            </form>
           </div>
         </div>
 
