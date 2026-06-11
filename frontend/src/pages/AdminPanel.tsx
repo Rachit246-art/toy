@@ -934,7 +934,7 @@ const AdminPanel: React.FC = () => {
                   ) : (
                     coupons.map(c => {
                       const isExpired = c.expiryDate && new Date(c.expiryDate) < new Date();
-                      const isExhausted = c.maxUsers !== null && c.currentUses >= c.maxUsers;
+                      const isExhausted = typeof c.maxUsers === 'number' && c.currentUses >= c.maxUsers;
                       const isInactive = isExpired || isExhausted;
                       return (
                         <tr key={c._id} style={{ opacity: isInactive ? 0.6 : 1 }}>
