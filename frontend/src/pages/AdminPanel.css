@@ -2,6 +2,12 @@
   padding: 3rem 1.5rem 5rem;
 }
 
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 1.5rem 1rem 4rem;
+  }
+}
+
 .admin-page-wrapper {
   min-height: 100vh;
   background-color: var(--color-bg);
@@ -114,8 +120,16 @@
   padding: 2rem;
   border-radius: 28px;
   border: 3px solid var(--color-pink);
+  min-width: 0;
 }
 .admin-form-container h2 { margin-bottom: 1.5rem; }
+
+@media (max-width: 768px) {
+  .admin-form-container {
+    padding: 1.2rem;
+    border-radius: 20px;
+  }
+}
 
 .admin-form {
   display: flex;
@@ -372,8 +386,16 @@
   border: 3px solid var(--color-blue);
   max-height: 700px;
   overflow-y: auto;
+  min-width: 0;
 }
 .admin-list-container h2 { margin-bottom: 1.5rem; }
+
+@media (max-width: 768px) {
+  .admin-list-container {
+    padding: 1.2rem;
+    border-radius: 20px;
+  }
+}
 
 .admin-product-list {
   display: flex;
@@ -480,6 +502,8 @@
 .reel-url-hint {
   margin-top: 1rem; font-size: 0.82rem; color: #888;
   background: rgba(0,0,0,0.04); padding: 0.7rem 1rem; border-radius: 12px; line-height: 1.7;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .reel-msg { font-family: var(--font-heading); font-size: 0.95rem; margin-top: 0.3rem; }
 
