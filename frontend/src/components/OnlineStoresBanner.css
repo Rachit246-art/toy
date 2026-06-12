@@ -72,19 +72,11 @@
   letter-spacing: -2px;
 }
 
-.logo-blinkit {
+.logo-flipkart {
   font-family: Arial, Helvetica, sans-serif;
-  font-weight: 900;
-  font-size: 2.8rem;
-  letter-spacing: -1.5px;
-}
-.logo-blinkit .black { color: #000; }
-.logo-blinkit .green { color: #219653; }
-
-.logo-ondc {
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: 900;
-  font-size: 2.8rem;
-  color: #0083D6;
-  letter-spacing: -1px;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 2.6rem;
+  color: #2874f0;
+  letter-spacing: -0.5px;
 }

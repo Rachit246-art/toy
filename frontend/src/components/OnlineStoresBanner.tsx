@@ -14,14 +14,9 @@ const OnlineStoresBanner: React.FC = () => {
               <span className="logo-amazon">amazon</span>
             </div>
           </a>
-          <a href="https://blinkit.com" target="_blank" rel="noopener noreferrer" className="store-link">
+          <a href="https://www.flipkart.com" target="_blank" rel="noopener noreferrer" className="store-link">
             <div className="logo-placeholder">
-              <span className="logo-blinkit"><span className="black">Blink</span><span className="green">it</span></span>
-            </div>
-          </a>
-          <a href="https://ondc.org" target="_blank" rel="noopener noreferrer" className="store-link">
-            <div className="logo-placeholder">
-              <span className="logo-ondc">ONDC</span>
+              <span className="logo-flipkart">Flipkart</span>
             </div>
           </a>
         </div>
