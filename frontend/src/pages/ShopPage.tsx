@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
@@ -15,18 +16,33 @@ interface Product {
   imageUrl: string;
   badge: string;
   emoji: string;
+  category?: string;
 }
 
 const ShopPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const { addToCart } = useCart();
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get('category') || 'Toys';
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/products`).then(res => setProducts(res.data));
   }, []);
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const productCat = p.category || 'Toys';
+    const matchesCategory = productCat === category;
+    return matchesSearch && matchesCategory;
+  });
+
+  const getTitle = () => {
+    if (category === 'DIY Paint Kit') return 'Magical DIY Paint Kits';
+    if (category === 'Home Decor') return 'Magical Home Decor';
+    if (category === 'Collectible') return 'Magical Collectibles';
+    return 'Magical Toy Shop';
+  };
 
   return (
     <div className="shop-page">
@@ -35,8 +51,8 @@ const ShopPage = () => {
         <div className="floating-star star-a">⭐</div>
         <div className="floating-star star-b">🌟</div>
         <div className="floating-star star-c">✨</div>
-        <h1>Magical Toy Shop</h1>
-        <p>Every toy is a 3D printed masterpiece, made with love!</p>
+        <h1>{getTitle()}</h1>
+        <p>Every item is a 3D printed masterpiece, made with love!</p>
         <div className="search-bar-wrapper">
           <input
             type="text"

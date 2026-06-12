@@ -1,13 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import OnlineStoresBanner from './OnlineStoresBanner';
 import './Footer.css';
 
 const Footer: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <footer className="site-footer">
-      {/* Wave top border */}
+    <>
+      <OnlineStoresBanner />
+      <footer className="site-footer">
+        {/* Wave top border */}
       <div className="footer-wave">
         <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30 L1200,60 L0,60 Z" fill="#FFF5F8" />
@@ -80,7 +83,8 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 

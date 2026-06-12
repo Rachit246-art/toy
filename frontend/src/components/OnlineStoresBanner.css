@@ -1,0 +1,90 @@
+.online-stores-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  background-color: transparent;
+  width: 100%;
+}
+
+.online-stores-box {
+  width: 100%;
+  max-width: 900px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+}
+
+.online-stores-header {
+  background-color: #ffe600; /* vibrant yellow */
+  padding: 1.2rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.online-stores-header h2 {
+  margin: 0;
+  color: #0b9e24; /* vibrant green */
+  font-family: var(--font-heading, 'Quicksand', sans-serif);
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.online-stores-logos {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 3rem 1rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+  background-color: #f7f7f7;
+}
+
+.store-link {
+  text-decoration: none;
+  display: inline-block;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.store-link:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+}
+
+.logo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Text-based Logos */
+.logo-amazon {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-size: 2.8rem;
+  color: #000;
+  letter-spacing: -2px;
+}
+
+.logo-blinkit {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-size: 2.8rem;
+  letter-spacing: -1.5px;
+}
+.logo-blinkit .black { color: #000; }
+.logo-blinkit .green { color: #219653; }
+
+.logo-ondc {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-size: 2.8rem;
+  color: #0083D6;
+  letter-spacing: -1px;
+}

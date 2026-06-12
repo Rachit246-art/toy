@@ -8,7 +8,7 @@ import './AdminPanel.css';
 
 interface Product {
   _id: string; name: string; price: string; imageColor: string;
-  imageUrl: string; badge: string; emoji: string;
+  imageUrl: string; badge: string; emoji: string; category?: string;
   isFeatured: boolean; isNewArrival: boolean;
   description?: string; features?: string; additionalInfo?: string; models?: string;
   galleryUrls?: string[];
@@ -83,6 +83,7 @@ const AdminPanel: React.FC = () => {
   const [imageColor, setImageColor] = useState('#FFC400');
   const [badge, setBadge] = useState('');
   const [emoji, setEmoji] = useState('🧸');
+  const [category, setCategory] = useState('Toys');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [description, setDescription] = useState('');
@@ -103,6 +104,7 @@ const AdminPanel: React.FC = () => {
   const [eColor, setEColor] = useState('#FFC400');
   const [eBadge, setEBadge] = useState('');
   const [eEmoji, setEEmoji] = useState('🧸');
+  const [eCategory, setECategory] = useState('Toys');
   const [eFeatured, setEFeatured] = useState(false);
   const [eNewArrival, setENewArrival] = useState(false);
   const [eDescription, setEDescription] = useState('');
@@ -209,7 +211,7 @@ const AdminPanel: React.FC = () => {
       const fd = new FormData();
       fd.append('name', name); fd.append('price', price);
       fd.append('imageColor', imageColor); fd.append('badge', badge);
-      fd.append('emoji', emoji);
+      fd.append('emoji', emoji); fd.append('category', category);
       fd.append('isFeatured', String(isFeatured));
       fd.append('isNewArrival', String(isNewArrival));
       fd.append('description', description);
@@ -222,7 +224,7 @@ const AdminPanel: React.FC = () => {
       await axios.post(`${API_BASE}/api/products`, fd, {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
       });
-      setName(''); setPrice(''); setImageColor('#FFC400'); setBadge(''); setEmoji('🧸');
+      setName(''); setPrice(''); setImageColor('#FFC400'); setBadge(''); setEmoji('🧸'); setCategory('Toys');
       setIsFeatured(false); setIsNewArrival(false); 
       setDescription(''); setFeatures(''); setAdditionalInfo(''); setModels('');
       setImageFile(null); setImagePreview(''); setGalleryFiles([]);
@@ -236,7 +238,7 @@ const AdminPanel: React.FC = () => {
   // ── Open edit modal ──
   const openEditProduct = (p: Product) => {
     setEditingProduct(p); setEName(p.name); setEPrice(p.price);
-    setEColor(p.imageColor); setEBadge(p.badge); setEEmoji(p.emoji || '🧸');
+    setEColor(p.imageColor); setEBadge(p.badge); setEEmoji(p.emoji || '🧸'); setECategory(p.category || 'Toys');
     setEFeatured(p.isFeatured); setENewArrival(p.isNewArrival);
     setEDescription(p.description || ''); setEFeatures(p.features || '');
     setEAdditionalInfo(p.additionalInfo || ''); setEModels(p.models || '');
@@ -251,7 +253,7 @@ const AdminPanel: React.FC = () => {
       const fd = new FormData();
       fd.append('name', eName); fd.append('price', ePrice);
       fd.append('imageColor', eColor); fd.append('badge', eBadge);
-      fd.append('emoji', eEmoji);
+      fd.append('emoji', eEmoji); fd.append('category', eCategory);
       fd.append('isFeatured', String(eFeatured));
       fd.append('isNewArrival', String(eNewArrival));
       fd.append('description', eDescription);
@@ -435,6 +437,12 @@ const AdminPanel: React.FC = () => {
                   onChange={e => setEName(e.target.value)} required className="playful-input" />
                 <input type="text" placeholder="Price (e.g. ₹499)" value={ePrice}
                   onChange={e => setEPrice(e.target.value)} required className="playful-input" />
+                <select value={eCategory} onChange={e => setECategory(e.target.value)} className="playful-input">
+                  <option value="Toys">Toys</option>
+                  <option value="DIY Paint Kit">DIY Paint Kit</option>
+                  <option value="Home Decor">Home Decor</option>
+                  <option value="Collectible">Collectible</option>
+                </select>
                 
                 <textarea placeholder="Description" value={eDescription} onChange={e => setEDescription(e.target.value)} className="playful-input" />
                 <textarea placeholder="Features (one per line)" value={eFeatures} onChange={e => setEFeatures(e.target.value)} className="playful-input" />
@@ -525,6 +533,12 @@ const AdminPanel: React.FC = () => {
                 onChange={e => setName(e.target.value)} required className="playful-input" />
               <input type="text" placeholder="Price (e.g. ₹499)" value={price}
                 onChange={e => setPrice(e.target.value)} required className="playful-input" />
+              <select value={category} onChange={e => setCategory(e.target.value)} className="playful-input">
+                <option value="Toys">Toys</option>
+                <option value="DIY Paint Kit">DIY Paint Kit</option>
+                <option value="Home Decor">Home Decor</option>
+                <option value="Collectible">Collectible</option>
+              </select>
 
               <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
               <textarea placeholder="Features (one per line)" value={features} onChange={e => setFeatures(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
@@ -607,7 +621,9 @@ const AdminPanel: React.FC = () => {
                       : (p.emoji||'🧸')}
                   </div>
                   <div className="product-details">
-                    <h3>{p.name}</h3><p>{p.price}</p>
+                    <h3>{p.name}</h3>
+                    <p>{p.price}</p>
+                    <p style={{fontSize: '0.8rem', color: '#666'}}>{p.category || 'Toys'}</p>
                     <div className="product-flags">
                       {p.isFeatured   && <span className="flag-badge flag-featured">⭐ Featured</span>}
                       {p.isNewArrival && <span className="flag-badge flag-new">🆕 New Arrival</span>}

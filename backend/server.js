@@ -102,6 +102,7 @@ const ProductSchema = new mongoose.Schema({
   galleryUrls:   { type: [String], default: [] },
   badge:         { type: String, default: '' },
   emoji:         { type: String, default: '' },
+  category:      { type: String, default: 'Toys' },
   isFeatured:    { type: Boolean, default: false },
   isNewArrival:  { type: Boolean, default: false },
   description:   { type: String, default: '' },
@@ -313,7 +314,7 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 4 }]), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
-    const { name, price, imageColor, badge, emoji, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
+    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
     const imageUrl = req.files && req.files['image'] ? req.files['image'][0].path : '';
     const galleryUrls = req.files && req.files['gallery'] ? req.files['gallery'].map(f => f.path) : [];
 
@@ -324,6 +325,7 @@ app.post('/api/products', authMiddleware, upload.fields([{ name: 'image', maxCou
       galleryUrls,
       badge:        badge        || '',
       emoji:        emoji        || '',
+      category:     category     || 'Toys',
       isFeatured:   isFeatured   === 'true' || isFeatured   === true,
       isNewArrival: isNewArrival === 'true' || isNewArrival === true,
       description:  description  || '',
@@ -369,12 +371,13 @@ app.patch('/api/products/:id', authMiddleware, async (req, res) => {
 app.put('/api/products/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 4 }]), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
-    const { name, price, imageColor, badge, emoji, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
+    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
     const updates = {
       name, price,
       imageColor: imageColor || '#FFC400',
       badge:        badge        || '',
       emoji:        emoji        || '',
+      category:     category     || 'Toys',
       isFeatured:   isFeatured   === 'true' || isFeatured   === true,
       isNewArrival: isNewArrival === 'true' || isNewArrival === true,
       description:  description  || '',
