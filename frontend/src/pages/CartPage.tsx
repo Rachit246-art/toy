@@ -50,7 +50,9 @@ const CartPage = () => {
         : appliedCoupon.discountAmount) 
     : 0;
 
-  const finalTotal = Math.max(0, cartTotal - discountAmount);
+  const totalAfterDiscount = Math.max(0, cartTotal - discountAmount);
+  const shippingFee = totalAfterDiscount > 999 || totalAfterDiscount === 0 ? 0 : 99;
+  const finalTotal = totalAfterDiscount + shippingFee;
 
   return (
     <div className="cart-page">
@@ -185,7 +187,11 @@ const CartPage = () => {
               )}
               <div className="summary-line">
                 <span>Delivery</span>
-                <span className="text-pink">FREE 🎉</span>
+                {shippingFee === 0 ? (
+                  <span className="text-pink">FREE 🎉</span>
+                ) : (
+                  <span className="text-orange">₹{shippingFee}</span>
+                )}
               </div>
               <div className="summary-divider" />
               <div className="summary-line total">
@@ -193,7 +199,7 @@ const CartPage = () => {
                 <span className="text-purple">₹{finalTotal.toLocaleString()}</span>
               </div>
               <button className="btn-playful btn-primary checkout-btn"
-                onClick={() => navigate('/checkout', { state: { appliedCoupon, discountAmount, finalTotal } })}
+                onClick={() => navigate('/checkout', { state: { appliedCoupon, discountAmount, finalTotal, shippingFee } })}
                 style={{ backgroundColor: 'var(--color-pink)', color: 'white', width: '100%', display: 'block', marginTop: '1.5rem' }}>
                 <ShoppingBag size={20} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />
                 Checkout Now!

@@ -15,7 +15,12 @@ const CheckoutPage: React.FC = () => {
 
   const appliedCoupon = location.state?.appliedCoupon || null;
   const discountAmount = location.state?.discountAmount || 0;
-  const finalTotal = location.state?.finalTotal || cartTotal;
+
+  const totalAfterDiscount = Math.max(0, cartTotal - discountAmount);
+  const calculatedShippingFee = totalAfterDiscount > 999 || totalAfterDiscount === 0 ? 0 : 99;
+  const shippingFee = location.state?.shippingFee ?? calculatedShippingFee;
+
+  const finalTotal = location.state?.finalTotal || (totalAfterDiscount + shippingFee);
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -228,7 +233,11 @@ const CheckoutPage: React.FC = () => {
               )}
               <div className="calc-row">
                 <span>Shipping</span>
-                <span className="text-pink">FREE</span>
+                {shippingFee === 0 ? (
+                  <span className="text-pink">FREE</span>
+                ) : (
+                  <span className="text-orange">₹{shippingFee}</span>
+                )}
               </div>
               <div className="calc-divider" />
               <div className="calc-row total">
