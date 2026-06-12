@@ -2,61 +2,61 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1rem;
   background-color: transparent;
   width: 100%;
 }
 
 .online-stores-box {
   width: 100%;
-  max-width: 900px;
+  max-width: 650px;
   background-color: #ffffff;
-  border-radius: 24px;
-  border: 4px dashed var(--color-pink, #FF006E);
+  border-radius: 16px;
+  border: 3px dashed var(--color-pink, #FF006E);
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(255, 0, 110, 0.1);
+  box-shadow: 0 4px 16px rgba(255, 0, 110, 0.08);
 }
 
 .online-stores-header {
   background-color: var(--color-purple, #8338EC);
-  padding: 1.2rem;
+  padding: 0.8rem;
   text-align: center;
-  border-bottom: 4px dashed var(--color-pink, #FF006E);
+  border-bottom: 3px dashed var(--color-pink, #FF006E);
 }
 
 .online-stores-header h2 {
   margin: 0;
   color: #ffffff;
   font-family: var(--font-heading, 'Quicksand', sans-serif);
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .online-stores-logos {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 3rem 1rem;
+  padding: 1.5rem 1rem;
   flex-wrap: wrap;
-  gap: 4rem;
+  gap: 1.5rem;
   background-color: #ffffff;
 }
 
 .store-link {
   text-decoration: none;
   display: inline-block;
-  padding: 1rem 2rem;
-  border-radius: 16px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
   background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   border: 2px solid #f0f0f0;
 }
 
 .store-link:hover {
-  transform: translateY(-8px) scale(1.05);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
   border-color: var(--color-blue, #3A86FF);
 }
 
@@ -70,16 +70,16 @@
 .logo-amazon {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 900;
-  font-size: 2.8rem;
+  font-size: 1.8rem;
   color: #000;
-  letter-spacing: -2px;
+  letter-spacing: -1px;
 }
 
 .logo-flipkart {
   font-family: Arial, Helvetica, sans-serif;
   font-style: italic;
   font-weight: 800;
-  font-size: 2.6rem;
+  font-size: 1.6rem;
   color: #2874f0;
   letter-spacing: -0.5px;
 }
@@ -87,7 +87,7 @@
 .logo-indiamart {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 900;
-  font-size: 2.6rem;
+  font-size: 1.6rem;
   color: #d1121c; /* IndiaMART red */
   letter-spacing: -0.5px;
 }
