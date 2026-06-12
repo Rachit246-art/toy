@@ -57,6 +57,25 @@ const CheckoutPage: React.FC = () => {
         totalAmount: finalTotal
       });
 
+      // Send email notification to admin via Web3Forms
+      const orderDetails = cartItems.map(item => `${item.quantity}x ${item.name} (₹${item.price})`).join('\n');
+      
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: '5e01a1fa-2a30-407f-a768-4021d397dccf',
+          subject: `New Order Placed by ${formData.name}`,
+          from_name: 'Pinaka Toys',
+          name: formData.name,
+          email: formData.email,
+          message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city}, ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: Cash on Delivery`
+        })
+      }).catch(err => console.error('Failed to send email notification:', err));
+
       setOrderSuccess(true);
       clearCart();
     } catch (err) {
