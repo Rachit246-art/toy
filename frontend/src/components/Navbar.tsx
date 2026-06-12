@@ -71,10 +71,10 @@ const Navbar: React.FC = () => {
           <button className="nav-link-btn text-purple" onClick={() => goTo('/shop?category=Toys')}>
             Toys <Star size={14} fill="var(--color-yellow)" color="var(--color-yellow)" style={{ verticalAlign: 'middle' }} />
           </button>
-          <button className="nav-link-btn text-pink" onClick={() => goTo('/shop?category=DIY Paint Kit')}>DIY Paint Kit</button>
-          <button className="nav-link-btn text-blue" onClick={() => goTo('/shop?category=Home Decor')}>Home Decor</button>
-          <button className="nav-link-btn text-orange" onClick={() => goTo('/shop?category=Collectible')}>Collectible</button>
           <button className="nav-link-btn text-pink" onClick={() => goTo('/bundle')}>Bundle</button>
+          <button className="nav-link-btn text-pink" onClick={() => goTo('/shop?category=DIY Paint Kit')}>DIY Paint Kit</button>
+          <button className="nav-link-btn text-orange" onClick={() => goTo('/shop?category=Collectible')}>Collectible</button>
+          <button className="nav-link-btn text-blue" onClick={() => goTo('/shop?category=Home Decor')}>Home Decor</button>
           <button className="nav-link-btn text-blue" onClick={() => goTo('/about')}>About Us</button>
           <button className="nav-link-btn text-orange" onClick={() => goTo('/contact')}>Contact</button>
         </div>
@@ -133,10 +133,10 @@ const Navbar: React.FC = () => {
       {menuOpen && (
         <div className="mobile-nav-menu">
           <button className="mobile-nav-link text-purple" onClick={() => goTo('/shop?category=Toys')}>🧸 Toys</button>
-          <button className="mobile-nav-link text-pink" onClick={() => goTo('/shop?category=DIY Paint Kit')}>🎨 DIY Paint Kit</button>
-          <button className="mobile-nav-link text-blue" onClick={() => goTo('/shop?category=Home Decor')}>🏠 Home Decor</button>
-          <button className="mobile-nav-link text-orange" onClick={() => goTo('/shop?category=Collectible')}>💎 Collectible</button>
           <button className="mobile-nav-link text-pink" onClick={() => goTo('/bundle')}>🎁 Create Bundle</button>
+          <button className="mobile-nav-link text-pink" onClick={() => goTo('/shop?category=DIY Paint Kit')}>🎨 DIY Paint Kit</button>
+          <button className="mobile-nav-link text-orange" onClick={() => goTo('/shop?category=Collectible')}>💎 Collectible</button>
+          <button className="mobile-nav-link text-blue" onClick={() => goTo('/shop?category=Home Decor')}>🏠 Home Decor</button>
           <button className="mobile-nav-link text-blue" onClick={() => goTo('/about')}>🌈 About Us</button>
           <button className="mobile-nav-link text-orange" onClick={() => goTo('/contact')}>💌 Contact</button>
           <button className="mobile-nav-link text-red" onClick={() => goTo('/wishlist')}>❤️ My Wishlist ({wishlistCount})</button>
