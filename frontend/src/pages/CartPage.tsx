@@ -101,8 +101,8 @@ const CartPage = () => {
                     <h3 className="text-purple">{item.name}</h3>
                     {item.isBundle && item.bundleDetails && (
                       <div className="cart-bundle-details" style={{ fontSize: '0.85rem', color: '#555', marginTop: '5px' }}>
-                        <div><strong>Type:</strong> {item.bundleDetails.type}</div>
-                        <div><strong>Pack:</strong> Pack of {item.bundleDetails.packSize}</div>
+                        {item.bundleDetails.type && <div><strong>Type:</strong> {item.bundleDetails.type}</div>}
+                        {item.bundleDetails.packSize && <div><strong>Pack:</strong> Pack of {item.bundleDetails.packSize}</div>}
                         {item.bundleDetails.size && <div><strong>Size:</strong> {item.bundleDetails.size}</div>}
                         <div style={{ marginTop: '5px', paddingLeft: '10px', borderLeft: '2px solid #eee' }}>
                           {item.bundleDetails.items.map((bItem, idx) => (

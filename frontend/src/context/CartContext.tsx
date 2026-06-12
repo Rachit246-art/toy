@@ -11,8 +11,8 @@ export interface CartItem {
   imageUrl?: string;
   isBundle?: boolean;
   bundleDetails?: {
-    type: string;
-    packSize: number;
+    type?: string;
+    packSize?: number;
     size?: string;
     items: { name: string; qty: number; imageUrl?: string }[];
   };

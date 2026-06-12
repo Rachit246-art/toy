@@ -206,7 +206,7 @@ const CheckoutPage: React.FC = () => {
                   </div>
                   <div className="summary-item-info">
                     <h4>{item.name}</h4>
-                    {item.isBundle && item.bundleDetails && (
+                    {item.isBundle && item.bundleDetails && item.bundleDetails.type && item.bundleDetails.packSize && (
                       <div style={{ fontSize: '0.75rem', color: '#666', marginBottom: '4px' }}>
                         {item.bundleDetails.type} ({item.bundleDetails.packSize})
                       </div>
