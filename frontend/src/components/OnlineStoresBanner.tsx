@@ -19,6 +19,11 @@ const OnlineStoresBanner: React.FC = () => {
               <span className="logo-flipkart">Flipkart</span>
             </div>
           </a>
+          <a href="https://www.indiamart.com" target="_blank" rel="noopener noreferrer" className="store-link">
+            <div className="logo-placeholder">
+              <span className="logo-indiamart">IndiaMART</span>
+            </div>
+          </a>
         </div>
       </div>
     </div>

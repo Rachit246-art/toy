@@ -10,51 +10,54 @@
 .online-stores-box {
   width: 100%;
   max-width: 900px;
-  background-color: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  background-color: #ffffff;
+  border-radius: 24px;
+  border: 4px dashed var(--color-pink, #FF006E);
   overflow: hidden;
+  box-shadow: 0 8px 24px rgba(255, 0, 110, 0.1);
 }
 
 .online-stores-header {
-  background-color: #ffe600; /* vibrant yellow */
+  background-color: var(--color-purple, #8338EC);
   padding: 1.2rem;
   text-align: center;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 4px dashed var(--color-pink, #FF006E);
 }
 
 .online-stores-header h2 {
   margin: 0;
-  color: #0b9e24; /* vibrant green */
+  color: #ffffff;
   font-family: var(--font-heading, 'Quicksand', sans-serif);
   font-size: 2.2rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .online-stores-logos {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
   padding: 3rem 1rem;
   flex-wrap: wrap;
-  gap: 2rem;
-  background-color: #f7f7f7;
+  gap: 4rem;
+  background-color: #ffffff;
 }
 
 .store-link {
   text-decoration: none;
   display: inline-block;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 2px solid #f0f0f0;
 }
 
 .store-link:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  border-color: var(--color-blue, #3A86FF);
 }
 
 .logo-placeholder {
@@ -78,5 +81,13 @@
   font-weight: 800;
   font-size: 2.6rem;
   color: #2874f0;
+  letter-spacing: -0.5px;
+}
+
+.logo-indiamart {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-size: 2.6rem;
+  color: #d1121c; /* IndiaMART red */
   letter-spacing: -0.5px;
 }
