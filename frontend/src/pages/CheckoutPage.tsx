@@ -19,6 +19,7 @@ const CheckoutPage: React.FC = () => {
   const totalAfterDiscount = Math.max(0, cartTotal - discountAmount);
   const calculatedShippingFee = totalAfterDiscount > 999 || totalAfterDiscount === 0 ? 0 : 99;
   const shippingFee = location.state?.shippingFee ?? calculatedShippingFee;
+  const amountNeededForFreeShipping = 1000 - totalAfterDiscount;
 
   const finalTotal = location.state?.finalTotal || (totalAfterDiscount + shippingFee);
 
@@ -198,6 +199,13 @@ const CheckoutPage: React.FC = () => {
         <div className="checkout-sidebar">
           <div className="order-summary-box">
             <h3 className="text-purple">Order Summary</h3>
+            
+            {shippingFee > 0 && totalAfterDiscount > 0 && (
+              <div style={{ backgroundColor: '#e6f4ff', color: 'var(--color-blue)', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', border: '1px dashed var(--color-blue)' }}>
+                Add ₹{amountNeededForFreeShipping} more for FREE Delivery! 🚚
+              </div>
+            )}
+
             <div className="summary-items">
               {cartItems.map(item => (
                 <div key={item._id} className="summary-item">

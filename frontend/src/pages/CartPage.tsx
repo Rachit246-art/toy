@@ -53,6 +53,7 @@ const CartPage = () => {
   const totalAfterDiscount = Math.max(0, cartTotal - discountAmount);
   const shippingFee = totalAfterDiscount > 999 || totalAfterDiscount === 0 ? 0 : 99;
   const finalTotal = totalAfterDiscount + shippingFee;
+  const amountNeededForFreeShipping = 1000 - totalAfterDiscount;
 
   return (
     <div className="cart-page">
@@ -175,6 +176,13 @@ const CartPage = () => {
 
             <div className="cart-summary">
               <h2 className="text-purple">Order Summary</h2>
+              
+              {shippingFee > 0 && totalAfterDiscount > 0 && (
+                <div style={{ backgroundColor: '#e6f4ff', color: 'var(--color-blue)', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem', textAlign: 'center', fontWeight: 'bold', border: '1px dashed var(--color-blue)' }}>
+                  Add ₹{amountNeededForFreeShipping} more for FREE Delivery! 🚚
+                </div>
+              )}
+
               <div className="summary-line">
                 <span>Items ({cartItems.reduce((s, i) => s + i.quantity, 0)})</span>
                 <span>₹{cartTotal.toLocaleString()}</span>
