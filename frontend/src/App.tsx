@@ -13,6 +13,7 @@ import ProductDetailsPage from './pages/ProductDetailsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import UserDashboard from './pages/UserDashboard';
 import BundlePage from './pages/BundlePage';
+import CursorSprinkles from './components/CursorSprinkles';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <CartProvider>
         <Router>
           <div className="App">
+            <CursorSprinkles />
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

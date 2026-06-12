@@ -1,0 +1,19 @@
+.cursor-sprinkle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none; /* Ignore mouse events so it doesn't block clicks */
+  z-index: 99999;
+  animation: sprinkleFade 1s ease-out forwards;
+}
+
+@keyframes sprinkleFade {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    /* Move out in random direction while fading and shrinking */
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+    opacity: 0;
+  }
+}
