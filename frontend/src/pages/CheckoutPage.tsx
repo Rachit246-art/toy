@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle, Truck, Package, ArrowLeft } from 'lucide-react';
@@ -7,6 +7,12 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../config';
 import './CheckoutPage.css';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const CheckoutPage: React.FC = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -36,6 +42,16 @@ const CheckoutPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [paymentMethod] = useState<'Razorpay'>('Razorpay');
+
+  // Load Razorpay Script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,6 +65,73 @@ const CheckoutPage: React.FC = () => {
     setErrorMsg('');
 
     try {
+      const token = localStorage.getItem('token');
+      const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+      if (paymentMethod === 'Razorpay') {
+        // 1. Create order on backend
+        const orderRes = await axios.post(`${API_BASE}/api/payment/create-order`, { amount: finalTotal }, authHeader);
+        const { id: order_id, amount, currency } = orderRes.data;
+
+        // 2. Open Razorpay modal
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder_key_id',
+          amount,
+          currency,
+          name: 'Pigglitz',
+          description: 'Toy Purchase',
+          order_id,
+          handler: async function (response: any) {
+            try {
+              // 3. Verify payment
+              const verifyRes = await axios.post(`${API_BASE}/api/payment/verify`, {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              }, authHeader);
+
+              if (verifyRes.data.success) {
+                // 4. Save order
+                await saveOrderToDB('Razorpay', 'Paid', response.razorpay_order_id, response.razorpay_payment_id);
+              }
+            } catch (err) {
+              console.error('Verification error', err);
+              setErrorMsg('❌ Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          },
+          prefill: {
+            name: formData.name,
+            email: formData.email,
+            contact: formData.phone
+          },
+          theme: {
+            color: '#FF69B4'
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function () {
+          setErrorMsg('❌ Payment failed. Please try again.');
+          setLoading(false);
+        });
+        rzp.open();
+      } else {
+        // COD
+        await saveOrderToDB('COD', 'Pending');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('❌ Failed to place order. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const saveOrderToDB = async (method: string, status: string, rzpOrderId?: string, rzpPaymentId?: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
       await axios.post(`${API_BASE}/api/orders`, {
         customerInfo: formData,
         items: cartItems.map(item => ({
@@ -60,8 +143,12 @@ const CheckoutPage: React.FC = () => {
           isBundle: item.isBundle || false,
           bundleDetails: item.bundleDetails || undefined
         })),
-        totalAmount: finalTotal
-      });
+        totalAmount: finalTotal,
+        paymentMethod: method,
+        paymentStatus: status,
+        razorpayOrderId: rzpOrderId,
+        razorpayPaymentId: rzpPaymentId
+      }, authHeader);
 
       // Send email notification to admin via Web3Forms
       const orderDetails = cartItems.map(item => `${item.quantity}x ${item.name} (₹${item.price})`).join('\n');
@@ -78,14 +165,14 @@ const CheckoutPage: React.FC = () => {
           from_name: 'Pinaka Toys',
           name: formData.name,
           email: formData.email,
-          message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city}, ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: Cash on Delivery`
+          message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city}, ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: ${method}`
         })
       }).catch(err => console.error('Failed to send email notification:', err));
 
       setOrderSuccess(true);
       clearCart();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to save order to DB', err);
       setErrorMsg('❌ Failed to place order. Please try again.');
     } finally {
       setLoading(false);
@@ -181,11 +268,18 @@ const CheckoutPage: React.FC = () => {
 
             <div className="form-section payment-section">
               <h3><Package size={20}/> Payment Method</h3>
-              <div className="payment-option selected">
-                <input type="radio" checked readOnly />
-                <span>Cash on Delivery (COD)</span>
+              
+              <div 
+                className="payment-option selected"
+                style={{ cursor: 'default', marginBottom: '10px' }}
+              >
+                <input type="radio" checked={true} readOnly />
+                <span>Online Payment (UPI, Cards, Wallets)</span>
               </div>
-              <p className="payment-note">Pay conveniently with cash when your toys arrive!</p>
+
+              <p className="payment-note">
+                Secure online payment powered by Razorpay.
+              </p>
             </div>
 
             {errorMsg && <div className="error-msg">{errorMsg}</div>}

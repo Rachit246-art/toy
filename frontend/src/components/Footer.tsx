@@ -43,6 +43,7 @@ const Footer: React.FC = () => {
               <li><button onClick={() => navigate('/shop')}>🧸 Shop Toys</button></li>
               <li><button onClick={() => navigate('/about')}>🌈 About Us</button></li>
               <li><button onClick={() => navigate('/contact')}>💌 Contact</button></li>
+              <li><button onClick={() => navigate('/privacy-policy')}>🔒 Privacy Policy</button></li>
             </ul>
           </div>
 

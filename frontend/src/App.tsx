@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import Home from './pages/Home';
@@ -13,12 +14,14 @@ import ProductDetailsPage from './pages/ProductDetailsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import UserDashboard from './pages/UserDashboard';
 import BundlePage from './pages/BundlePage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import CursorSprinkles from './components/CursorSprinkles';
 
 function App() {
   return (
-    <WishlistProvider>
-      <CartProvider>
+    <HelmetProvider>
+      <WishlistProvider>
+        <CartProvider>
         <Router>
           <div className="App">
             <CursorSprinkles />
@@ -35,11 +38,13 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/profile" element={<UserDashboard />} />
               <Route path="/bundle" element={<BundlePage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             </Routes>
           </div>
         </Router>
-      </CartProvider>
-    </WishlistProvider>
+        </CartProvider>
+      </WishlistProvider>
+    </HelmetProvider>
   );
 }
 

@@ -6,6 +6,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
 import API_BASE from '../config';
+import SEO from '../components/SEO';
+import { Helmet } from 'react-helmet-async';
 import './ProductDetailsPage.css';
 
 interface Review {
@@ -30,6 +32,8 @@ interface ProductDetails {
   additionalInfo: string;
   models: string;
   reviews: Review[];
+  seoKeywords?: string;
+  category?: string;
 }
 
 const ProductDetailsPage: React.FC = () => {
@@ -164,8 +168,41 @@ const ProductDetailsPage: React.FC = () => {
   const modelsList = product.models ? product.models.split(',').map(s => s.trim()).filter(Boolean) : [];
   const featuresList = product.features ? product.features.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
+  const productTitle = `${product.name} | Pigglitz 3D Toys`;
+  const productDesc = product.description || `Buy ${product.name} from Pigglitz. High-quality 3D printed toys.`;
+  const productKeywords = product.seoKeywords || `${product.name}, ${product.category || 'toys'}, 3D printed toy, kids gift, pigglitz`;
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": allImages.length > 0 ? allImages : ["https://pigglitz.com/logo.png"],
+    "description": productDesc,
+    "sku": product._id,
+    "offers": {
+      "@type": "Offer",
+      "url": `https://pigglitz.com/product/${product._id}`,
+      "priceCurrency": "INR",
+      "price": product.price.replace(/[^0-9.]/g, '') || "0",
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    }
+  };
+
   return (
     <div className="product-details-page">
+      <SEO 
+        title={productTitle} 
+        description={productDesc} 
+        keywords={productKeywords} 
+        url={`https://pigglitz.com/product/${product._id}`} 
+        image={mainImage || 'https://pigglitz.com/logo.png'} 
+      />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      </Helmet>
       <Navbar />
       
       <div className="container product-details-container">

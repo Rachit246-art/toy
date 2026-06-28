@@ -207,7 +207,9 @@ const CartPage = () => {
                 <span className="text-purple">₹{finalTotal.toLocaleString()}</span>
               </div>
               <button className="btn-playful btn-primary checkout-btn"
-                onClick={() => navigate('/checkout', { state: { appliedCoupon, discountAmount, finalTotal, shippingFee } })}
+                onClick={() => {
+                  navigate('/checkout', { state: { appliedCoupon, discountAmount, finalTotal, shippingFee } });
+                }}
                 style={{ backgroundColor: 'var(--color-pink)', color: 'white', width: '100%', display: 'block', marginTop: '1.5rem' }}>
                 <ShoppingBag size={20} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />
                 Checkout Now!

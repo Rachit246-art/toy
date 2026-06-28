@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
 import API_BASE from '../config';
+import SEO from '../components/SEO';
 import './ShopPage.css';
 
 interface Product {
@@ -46,6 +47,12 @@ const ShopPage = () => {
 
   return (
     <div className="shop-page">
+      <SEO 
+        title="Shop 3D Printed Toys | Pigglitz" 
+        description="Browse our amazing collection of 3D printed toys. Use our filters to find the perfect articulated animals, robots, bundles, and custom collectibles."
+        keywords="buy 3d printed toys, shop toys, pigglitz shop, articulated toys, custom 3d prints"
+        url="https://pigglitz.com/shop"
+      />
       <Navbar />
       <div className="shop-hero">
         <div className="floating-star star-a">⭐</div>

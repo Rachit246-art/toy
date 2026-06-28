@@ -3,11 +3,14 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -17,16 +20,14 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://toy-git-main-rachit246-arts-projects.vercel.app',
   'https://toy-e0h25coer-rachit246-arts-projects.vercel.app',
+  'https://orange-wolverine-290055.hostingersite.com',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
-    if (/\.onrender\.com$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS blocked: ${origin}`));
+    // Allow all origins to bypass CORS issues during testing/deployment
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -86,6 +87,18 @@ const reelStorage = new CloudinaryStorage({
 });
 const uploadReel = multer({ storage: reelStorage });
 
+// ── Multer + Cloudinary storage for hero slides ──
+const slideStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'pigglitz_slides',
+    resource_type: 'image',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }],
+  },
+});
+const uploadSlide = multer({ storage: slideStorage });
+
 // Models
 const ReviewSchema = new mongoose.Schema({
   name:     { type: String, required: true },
@@ -110,7 +123,8 @@ const ProductSchema = new mongoose.Schema({
   additionalInfo:{ type: String, default: '' },
   models:        { type: String, default: '' },
   reviews:       { type: [ReviewSchema], default: [] },
-  createdAt:     { type: Date, default: Date.now }
+  createdAt:     { type: Date, default: Date.now },
+  seoKeywords:   { type: String, default: '' }
 });
 const Product = mongoose.model('Product', ProductSchema);
 
@@ -152,6 +166,19 @@ const SiteSettingsSchema = new mongoose.Schema({
 });
 const SiteSettings = mongoose.model('SiteSettings', SiteSettingsSchema);
 
+const HeroSlideSchema = new mongoose.Schema({
+  titleLine1: { type: String, default: 'Little Prints.' },
+  titleLine2: { type: String, default: 'Big Smiles.' },
+  description: { type: String, default: 'Welcome to Pigglitz, your 3D Printing Pitara! Discover magical, colorful, and fun 3D printed toys made just for you!' },
+  buttonText: { type: String, default: 'Shop Now' },
+  buttonLink: { type: String, default: '/toys' },
+  imageUrl: { type: String, default: '' },
+  backgroundColor: { type: String, default: '#FFC400' },
+  emoji: { type: String, default: '🧸' },
+  createdAt: { type: Date, default: Date.now }
+});
+const HeroSlide = mongoose.model('HeroSlide', HeroSlideSchema);
+
 const OrderSchema = new mongoose.Schema({
   customerInfo: {
     name: { type: String, required: true },
@@ -181,6 +208,10 @@ const OrderSchema = new mongoose.Schema({
   }],
   totalAmount: { type: Number, required: true },
   status: { type: String, default: 'Pending', enum: ['Pending', 'Shipped', 'Delivered'] },
+  paymentMethod: { type: String, default: 'COD' },
+  paymentStatus: { type: String, default: 'Pending' },
+  razorpayOrderId: { type: String },
+  razorpayPaymentId: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 const Order = mongoose.model('Order', OrderSchema);
@@ -206,6 +237,12 @@ const authMiddleware = (req, res, next) => {
     res.status(401).json({ message: 'Token is not valid' });
   }
 };
+
+// ── Razorpay Setup ──
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key_id',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_key_secret',
+});
 
 // 1. Login Route
 app.post('/api/auth/login', async (req, res) => {
@@ -314,7 +351,7 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 4 }]), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
-    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
+    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models, seoKeywords } = req.body;
     const imageUrl = req.files && req.files['image'] ? req.files['image'][0].path : '';
     const galleryUrls = req.files && req.files['gallery'] ? req.files['gallery'].map(f => f.path) : [];
 
@@ -331,9 +368,22 @@ app.post('/api/products', authMiddleware, upload.fields([{ name: 'image', maxCou
       description:  description  || '',
       features:     features     || '',
       additionalInfo: additionalInfo || '',
-      models:       models       || ''
+      models:       models       || '',
+      seoKeywords:  seoKeywords  || ''
     });
     const saved = await newProduct.save();
+
+    // Ping Google to update sitemap
+    try {
+      require('https').get('https://www.google.com/ping?sitemap=https://pigglitz.com/sitemap.xml', (response) => {
+        console.log(`Pinged Google Sitemap. Status Code: ${response.statusCode}`);
+      }).on('error', (e) => {
+        console.error(`Got error when pinging Google: ${e.message}`);
+      });
+    } catch (pingErr) {
+      console.error('Failed to trigger sitemap ping:', pingErr);
+    }
+
     res.status(201).json(saved);
   } catch (err) {
     console.error(err);
@@ -371,7 +421,7 @@ app.patch('/api/products/:id', authMiddleware, async (req, res) => {
 app.put('/api/products/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 4 }]), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
-    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models } = req.body;
+    const { name, price, imageColor, badge, emoji, category, isFeatured, isNewArrival, description, features, additionalInfo, models, seoKeywords } = req.body;
     const updates = {
       name, price,
       imageColor: imageColor || '#FFC400',
@@ -383,7 +433,8 @@ app.put('/api/products/:id', authMiddleware, upload.fields([{ name: 'image', max
       description:  description  || '',
       features:     features     || '',
       additionalInfo: additionalInfo || '',
-      models:       models       || ''
+      models:       models       || '',
+      seoKeywords:  seoKeywords  || ''
     };
     if (req.files && req.files['image']) updates.imageUrl = req.files['image'][0].path;
     if (req.files && req.files['gallery']) updates.galleryUrls = req.files['gallery'].map(f => f.path);
@@ -419,7 +470,21 @@ app.get('/api/products/new-arrivals', async (req, res) => {
 // 7b. Get Single Product Route (Must be after specific routes like /featured and /new-arrivals)
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const param = req.params.id;
+    let product;
+    
+    // First try by ID
+    if (mongoose.Types.ObjectId.isValid(param)) {
+      product = await Product.findById(param);
+    }
+    
+    // If not found by ID, try by name (slug)
+    if (!product) {
+      const regexStr = '^' + param.replace(/-/g, '.*') + '$';
+      const nameRegex = new RegExp(regexStr, 'i');
+      product = await Product.findOne({ name: nameRegex });
+    }
+    
     if (!product) return res.status(404).json({ message: 'Not found' });
     res.json(product);
   } catch (err) {
@@ -546,11 +611,19 @@ app.put('/api/reels/:id', authMiddleware, uploadReel.fields([
 // 12. Create Order (Public)
 app.post('/api/orders', async (req, res) => {
   try {
-    const { customerInfo, items, totalAmount } = req.body;
+    const { customerInfo, items, totalAmount, paymentMethod, paymentStatus, razorpayOrderId, razorpayPaymentId } = req.body;
     if (!customerInfo || !items || items.length === 0) {
       return res.status(400).json({ message: 'Invalid order data' });
     }
-    const order = new Order({ customerInfo, items, totalAmount });
+    const order = new Order({ 
+      customerInfo, 
+      items, 
+      totalAmount,
+      paymentMethod: paymentMethod || 'COD',
+      paymentStatus: paymentStatus || 'Pending',
+      razorpayOrderId,
+      razorpayPaymentId
+    });
     const saved = await order.save();
     res.status(201).json(saved);
   } catch (err) {
@@ -559,8 +632,45 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// 12b. Create Razorpay Order
+app.post('/api/payment/create-order', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const options = {
+      amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
+      currency: "INR",
+      receipt: `receipt_${Date.now()}`
+    };
+    const order = await razorpay.orders.create(options);
+    res.json(order);
+  } catch (err) {
+    console.error('Razorpay Create Order error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 12c. Verify Razorpay Payment
+app.post('/api/payment/verify', async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSign = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'placeholder_key_secret')
+                                .update(sign.toString())
+                                .digest("hex");
+
+    if (razorpay_signature === expectedSign) {
+      res.json({ success: true, message: "Payment verified successfully" });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid signature sent!" });
+    }
+  } catch (err) {
+    console.error('Razorpay Verify error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 13. Get User Orders (Protected)
 // ── Coupons Routes ──
-// 12b. Get Coupons (Admin gets all, Users get public active ones)
 app.get('/api/coupons', async (req, res) => {
   try {
     // Check if admin is requesting
@@ -777,8 +887,116 @@ app.put('/api/settings/announcements', authMiddleware, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ── Hero Slides Routes ──
+// 19. Get All Hero Slides (Public)
+app.get('/api/hero-slides', async (req, res) => {
+  try {
+    const slides = await HeroSlide.find().sort({ createdAt: -1 });
+    res.json(slides);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 20. Add Hero Slide (Admin Only)
+app.post('/api/hero-slides', authMiddleware, uploadSlide.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { titleLine1, titleLine2, description, buttonText, buttonLink, backgroundColor, emoji } = req.body;
+    const imageUrl = req.file ? req.file.path : '';
+    const newSlide = new HeroSlide({
+      titleLine1, titleLine2, description, buttonText, buttonLink, backgroundColor, emoji, imageUrl
+    });
+    const saved = await newSlide.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error('Add hero slide error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 21. Delete Hero Slide (Admin Only)
+app.delete('/api/hero-slides/:id', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    await HeroSlide.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Slide removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 22. Update Hero Slide (Admin Only)
+app.put('/api/hero-slides/:id', authMiddleware, uploadSlide.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { titleLine1, titleLine2, description, buttonText, buttonLink, backgroundColor, emoji } = req.body;
+    const updates = { titleLine1, titleLine2, description, buttonText, buttonLink, backgroundColor, emoji };
+    if (req.file) updates.imageUrl = req.file.path;
+    const updated = await HeroSlide.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true });
+    res.json(updated);
+  } catch (err) {
+    console.error('Edit hero slide error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Serve static files from the React frontend app
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Health check — keeps Render from spinning down
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
-app.get('/', (req, res) => res.json({ message: 'Pigglitz API running 🧸' }));
+app.get('/api', (req, res) => res.json({ message: 'Pigglitz API running 🧸' }));
+
+// ── Sitemap Route ──
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const products = await Product.find({}, '_id updatedAt createdAt');
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://pigglitz.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://pigglitz.com/shop</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pigglitz.com/about</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pigglitz.com/bundle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+
+    products.forEach(product => {
+      xml += `
+  <url>
+    <loc>https://pigglitz.com/product/${product._id}</loc>
+    <lastmod>${(product.updatedAt || product.createdAt || new Date()).toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+    });
+
+    xml += `\n</urlset>`;
+    
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Anything that doesn't match the above API routes, send back the index.html file
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

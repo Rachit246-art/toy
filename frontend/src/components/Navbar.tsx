@@ -32,6 +32,17 @@ const Navbar: React.FC = () => {
     navigate(path);
     setMenuOpen(false);
     setShowProfileMenu(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLogoClick = () => {
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setMenuOpen(false);
+      setShowProfileMenu(false);
+    } else {
+      goTo('/');
+    }
   };
 
   const handleLogout = () => {
@@ -58,7 +69,7 @@ const Navbar: React.FC = () => {
       <nav className="navbar">
         <div className="container navbar-container">
         {/* Logo */}
-        <div className="navbar-logo" onClick={() => goTo('/')}>
+        <div className="navbar-logo" onClick={handleLogoClick}>
           <span className="logo-text text-purple">Pigg</span>
           <span className="logo-text text-yellow">l</span>
           <span className="logo-text text-orange">i</span>

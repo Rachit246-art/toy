@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../config';
 import { useCart } from '../context/CartContext';
+import SEO from '../components/SEO';
 import './BundlePage.css';
 
 interface Product {
@@ -103,6 +104,12 @@ const BundlePage: React.FC = () => {
 
   return (
     <div className="page-wrapper">
+      <SEO 
+        title="Toy Bundles & Gift Boxes | Pigglitz" 
+        description="Save big with our magical toy bundles! The perfect gift boxes filled with assorted 3D printed toys for kids, birthdays, and special occasions."
+        keywords="3d toy bundles, toy gift box, kids birthday gift, pigglitz bundle, discount toys"
+        url="https://pigglitz.com/bundle"
+      />
       <Navbar />
       
       <div className="bundle-page">
@@ -125,7 +132,7 @@ const BundlePage: React.FC = () => {
                   <div key={p._id} className="bundle-card">
                     <div 
                       className="bundle-eye-icon" 
-                      onClick={() => navigate(`/product/${p._id}`)}
+                      onClick={() => navigate(`/product/${p.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)}
                       title="View Details"
                     >
                       <Eye size={18} />
@@ -135,13 +142,13 @@ const BundlePage: React.FC = () => {
                         src={p.imageUrl} 
                         alt={p.name} 
                         className="bundle-card-img" 
-                        onClick={() => navigate(`/product/${p._id}`)}
+                        onClick={() => navigate(`/product/${p.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)}
                         style={{ cursor: 'pointer' }}
                       />
                     ) : (
                       <div 
                         className="bundle-card-img" 
-                        onClick={() => navigate(`/product/${p._id}`)}
+                        onClick={() => navigate(`/product/${p.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)}
                         style={{ backgroundColor: p.imageColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', cursor: 'pointer' }}
                       >
                         {p.emoji || '🧸'}
@@ -149,7 +156,7 @@ const BundlePage: React.FC = () => {
                     )}
                     <div className="bundle-card-info">
                       <h4 
-                        onClick={() => navigate(`/product/${p._id}`)}
+                        onClick={() => navigate(`/product/${p.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)}
                         style={{ cursor: 'pointer' }}
                         title="View Details"
                       >

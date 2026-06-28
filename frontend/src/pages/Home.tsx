@@ -8,6 +8,7 @@ import Hero from '../components/Hero';
 import ProductCard from '../components/ProductCard';
 import VideoReelSection from '../components/VideoReelSection';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import API_BASE from '../config';
 import './Home.css';
 
@@ -144,6 +145,11 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-page">
+      <SEO 
+        title="Pigglitz - 3D Printing Pitara | Custom 3D Printed Toys" 
+        description="Discover magical, colorful, and fun 3D printed toys at Pigglitz. We offer a wide range of custom, personalized, and unique 3D printed gifts for kids and collectors."
+        keywords="Pigglitz, 3D printed toys, custom toys, 3d printing india, personalized gifts, kids toys, unique gifts"
+      />
       <Navbar />
 
       {/* ── 1. HERO ── */}
@@ -177,7 +183,7 @@ const Home: React.FC = () => {
               style={{ transform: `translateX(calc(-${arrivals.index} * (260px + 1.5rem)))` }}
             >
               {newArrivals.length > 0 ? newArrivals.map((item: any) => (
-                <div key={item._id} className="arrival-card" onClick={() => navigate(`/product/${item._id}`)} style={{ cursor: 'pointer' }}>
+                <div key={item._id} className="arrival-card" onClick={() => navigate(`/product/${item.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)} style={{ cursor: 'pointer' }}>
                   <div className="arrival-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : item.imageColor }}>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} />
@@ -256,7 +262,7 @@ const Home: React.FC = () => {
               style={{ transform: `translateX(calc(-${featured.index} * 100%))` }}
             >
               {featuredProducts.length > 0 ? featuredProducts.map((item: any) => (
-                <div key={item._id} className="featured-slide" onClick={() => navigate(`/product/${item._id}`)} style={{ cursor: 'pointer' }}>
+                <div key={item._id} className="featured-slide" onClick={() => navigate(`/product/${item.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase()}`)} style={{ cursor: 'pointer' }}>
                   <div className="featured-slide-img" style={{ backgroundColor: item.imageUrl ? '#f8f8f8' : item.imageColor }}>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name}
@@ -450,11 +456,16 @@ const Home: React.FC = () => {
           </div>
           <div className="faq-list">
             {[
-              { q: 'What material do you use?',          a: 'We use high-quality, non-toxic PLA (polylactic acid), a plant-based plastic that is safe for play.' },
-              { q: 'Are these toys durable?',             a: 'Yes! Our designs are engineered for strength. However, like all toys, they are best suited for children aged 3 and up.' },
-              { q: 'Why is your brand called "Pigglitz"?', a: 'It\'s a creative blend of our parent company, Pinaka Technologies, and our unique "PI" logo design!' },
-              { q: 'How long does delivery take?',        a: 'We aim to dispatch all orders within 48 hours from our Kanpur facility.' },
-              { q: 'Where are you based?',                a: 'All our toys are designed, printed, and shipped with love from our workshop in Naubasta, Kanpur.' },
+              { q: 'What material are the toys made from?', a: 'Our toys are manufactured using high-quality PLA material through advanced 3D printing technology.' },
+              { q: 'Are the toys safe for children?', a: 'Yes. Our toys are designed for children aged 3 years and above. Adult supervision is recommended for younger children.' },
+              { q: 'Do the toys move?', a: 'Many of our products feature articulated and flexible joints that allow realistic movement.' },
+              { q: 'Do you offer Cash on Delivery?', a: 'Availability of COD depends on serviceability in your location.' },
+              { q: 'How long does delivery take?', a: 'Most orders are delivered within 3–10 business days across India.' },
+              { q: 'Can I return a product?', a: 'Returns are not accepted except in cases of manufacturing defects, damage during transit, or incorrect products.' },
+              { q: 'Do you accept bulk orders?', a: 'Yes. We offer special pricing for birthday return gifts, schools, events, and corporate gifting.' },
+              { q: 'Can I customize products?', a: 'Certain products may be customized depending on quantity and design requirements.' },
+              { q: 'Are the products made in India?', a: 'Yes. All products are proudly designed and manufactured in India.' },
+              { q: 'How can I contact support?', a: 'You can reach us through the Contact Us page or email support@pigglitz.com.' },
             ].map((item, i) => (
               <FaqItem key={i} question={item.q} answer={item.a} />
             ))}

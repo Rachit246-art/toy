@@ -39,7 +39,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handleCardClick = () => {
-    if (_id) navigate(`/product/${_id}`);
+    if (_id && name) {
+      const slug = name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+      navigate(`/product/${slug}`);
+    }
   };
 
   return (
