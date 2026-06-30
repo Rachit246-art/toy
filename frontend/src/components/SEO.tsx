@@ -6,6 +6,7 @@ interface SEOProps {
   keywords?: string;
   url?: string;
   image?: string;
+  robots?: string;
 }
 
 const SEO: React.FC<SEOProps> = ({ 
@@ -13,13 +14,15 @@ const SEO: React.FC<SEOProps> = ({
   description = 'Welcome to Pigglitz, your 3D Printing Pitara! Discover magical, colorful, and fun 3D printed toys made just for you!',
   keywords = '3D printed toys, personalized gifts, Pigglitz, toy, fun toys, kids toys',
   url = 'https://pigglitz.com/',
-  image = 'https://pigglitz.com/logo.png' // Adjust default image as needed
+  image = 'https://pigglitz.com/logo.png', // Adjust default image as needed
+  robots = 'index, follow'
 }) => {
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
+      <meta name="robots" content={robots} />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />

@@ -125,7 +125,7 @@ const ProductSchema = new mongoose.Schema({
   reviews:       { type: [ReviewSchema], default: [] },
   createdAt:     { type: Date, default: Date.now },
   seoKeywords:   { type: String, default: '' }
-});
+}, { timestamps: true });
 const Product = mongoose.model('Product', ProductSchema);
 
 const VideoReelSchema = new mongoose.Schema({
@@ -480,7 +480,9 @@ app.get('/api/products/:id', async (req, res) => {
     
     // If not found by ID, try by name (slug)
     if (!product) {
-      const regexStr = '^' + param.replace(/-/g, '.*') + '$';
+      // Allow optional non-alphanumeric characters at the start and end,
+      // as the frontend strips them when creating the slug.
+      const regexStr = '^[^a-zA-Z0-9]*' + param.replace(/-/g, '.*') + '[^a-zA-Z0-9]*$';
       const nameRegex = new RegExp(regexStr, 'i');
       product = await Product.findOne({ name: nameRegex });
     }
@@ -949,9 +951,22 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISO
 app.get('/api', (req, res) => res.json({ message: 'Pigglitz API running 🧸' }));
 
 // ── Sitemap Route ──
+const escapeXML = (str) => {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+};
+
+const createSlug = (name) => {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+};
+
 app.get('/sitemap.xml', async (req, res) => {
   try {
-    const products = await Product.find({}, '_id updatedAt createdAt');
+    const products = await Product.find({}, 'name updatedAt createdAt');
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -973,12 +988,18 @@ app.get('/sitemap.xml', async (req, res) => {
     <loc>https://pigglitz.com/bundle</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pigglitz.com/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>`;
 
     products.forEach(product => {
+      const slug = createSlug(product.name || 'product');
       xml += `
   <url>
-    <loc>https://pigglitz.com/product/${product._id}</loc>
+    <loc>https://pigglitz.com/product/${escapeXML(slug)}</loc>
     <lastmod>${(product.updatedAt || product.createdAt || new Date()).toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -988,9 +1009,141 @@ app.get('/sitemap.xml', async (req, res) => {
     xml += `\n</urlset>`;
     
     res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600');
     res.send(xml);
   } catch (err) {
     res.status(500).send('Error generating sitemap');
+  }
+});
+// ── SEO SSR Route for Product Pages ──
+const https = require('https');
+const getHtml = (url) => new Promise((resolve, reject) => {
+  https.get(url, (response) => {
+    let data = '';
+    response.on('data', chunk => data += chunk);
+    response.on('end', () => resolve(data));
+  }).on('error', reject);
+});
+
+app.get('/seo/product/:slug', async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    const regexStr = '^' + slug.replace(/-/g, '.*') + '$';
+    const nameRegex = new RegExp(regexStr, 'i');
+    
+    // Find the product
+    let product;
+    if (mongoose.Types.ObjectId.isValid(slug)) {
+      product = await Product.findById(slug);
+    }
+    if (!product) {
+      product = await Product.findOne({ name: nameRegex });
+    }
+
+    // Try to get the frontend index.html
+    let htmlTemplate = '';
+    try {
+      htmlTemplate = await getHtml('https://pigglitz.com/index.html');
+      if (!htmlTemplate || !htmlTemplate.includes('<html')) {
+        throw new Error('Invalid HTML received');
+      }
+    } catch (e) {
+      // Fallback to local file if fetch fails (e.g., local dev)
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        htmlTemplate = fs.readFileSync(path.join(__dirname, '../frontend/dist', 'index.html'), 'utf8');
+      } catch(e2) {
+        htmlTemplate = '<!doctype html><html lang="en"><head><title>Pigglitz</title></head><body><div id="root"></div></body></html>';
+      }
+    }
+
+    if (!product) {
+      // Return 404 with noindex
+      const noindexHead = '<title>Product Not Found</title>\n<meta name="robots" content="noindex, nofollow" />';
+      let finalHtml = htmlTemplate.replace(/<title>.*?<\/title>/i, '');
+      finalHtml = finalHtml.replace('</head>', noindexHead + '\n</head>');
+      return res.status(404).send(finalHtml);
+    }
+
+    const title = `${product.name} | Pigglitz 3D Toys`;
+    const desc = product.description || `Buy ${product.name} from Pigglitz. High-quality 3D printed toys.`;
+    const url = `https://pigglitz.com/product/${slug}`;
+    const allImages = [product.imageUrl, ...(product.galleryUrls || [])].filter(Boolean);
+    const mainImg = allImages.length > 0 ? allImages[0] : "https://pigglitz.com/logo.png";
+    const price = product.price ? product.price.replace(/[^0-9.]/g, '') : "0";
+
+    const jsonLd = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "image": allImages.length > 0 ? allImages : ["https://pigglitz.com/logo.png"],
+      "description": desc,
+      "sku": product._id.toString(),
+      "brand": {
+        "@type": "Brand",
+        "name": "Pigglitz"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": url,
+        "priceCurrency": "INR",
+        "price": price,
+        "availability": "https://schema.org/InStock",
+        "itemCondition": "https://schema.org/NewCondition"
+      }
+    };
+
+    const seoHead = `
+      <title>${escapeXML(title)}</title>
+      <meta name="description" content="${escapeXML(desc)}" />
+      <meta name="robots" content="index, follow" />
+      <link rel="canonical" href="${escapeXML(url)}" />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="${escapeXML(url)}" />
+      <meta property="og:title" content="${escapeXML(title)}" />
+      <meta property="og:description" content="${escapeXML(desc)}" />
+      <meta property="og:image" content="${escapeXML(mainImg)}" />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:url" content="${escapeXML(url)}" />
+      <meta property="twitter:title" content="${escapeXML(title)}" />
+      <meta property="twitter:description" content="${escapeXML(desc)}" />
+      <meta property="twitter:image" content="${escapeXML(mainImg)}" />
+      <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+      <script>
+        window.__INITIAL_PRODUCT_DATA__ = ${JSON.stringify(product)};
+        window.__INITIAL_PRODUCT_SLUG__ = "${escapeXML(slug)}";
+      </script>
+    `;
+
+    // Visible HTML to satisfy Google's content checks before JS runs
+    // We use the screen-reader-only pattern instead of display:none because Google ignores display:none content.
+    const visibleHtml = `
+      <div style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" id="seo-prerender">
+        <h1>${escapeXML(product.name)}</h1>
+        <img src="${escapeXML(mainImg)}" alt="${escapeXML(product.name)}" />
+        <p>${escapeXML(desc)}</p>
+        <p>Price: ${escapeXML(product.price)}</p>
+        <h2>Features</h2>
+        <p>${escapeXML(product.features || '')}</p>
+        <h2>Additional Information</h2>
+        <p>Material: Premium, eco-friendly 3D printed PLA plastic (Non-toxic and safe for kids).</p>
+        <p>Care Instructions: Wipe clean with a damp cloth. Do not expose to extreme heat.</p>
+        <p>Shipping & Returns: Dispatched within 2-3 business days. 7-day return policy on defective items.</p>
+      </div>
+    `;
+
+    let finalHtml = htmlTemplate.replace(/<title>.*?<\/title>/i, '');
+    finalHtml = finalHtml.replace('</head>', seoHead + '\n</head>');
+    finalHtml = finalHtml.replace('<body>', '<body>\n' + visibleHtml);
+
+    res.header('Content-Type', 'text/html');
+    res.header('Cache-Control', 'public, max-age=300'); // Cache SEO hit for 5 mins
+    res.send(finalHtml);
+
+  } catch (err) {
+    console.error("SEO render error:", err);
+    res.status(500).send("SEO Error");
   }
 });
 

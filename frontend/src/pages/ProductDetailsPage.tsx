@@ -61,6 +61,21 @@ const ProductDetailsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      // SEO Edge Rendering Hydration Optimization
+      const win = window as any;
+      if (win.__INITIAL_PRODUCT_DATA__ && win.__INITIAL_PRODUCT_SLUG__ === id) {
+        const data = win.__INITIAL_PRODUCT_DATA__;
+        setProduct(data);
+        setMainImage(data.imageUrl);
+        const modelsArr = data.models ? data.models.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        if (modelsArr.length > 0) setSelectedModel(modelsArr[0]);
+        setLoading(false);
+        // Clear it so navigating to a different product forces a fresh API fetch
+        win.__INITIAL_PRODUCT_DATA__ = null;
+        win.__INITIAL_PRODUCT_SLUG__ = null;
+        return;
+      }
+
       try {
         const res = await axios.get(`${API_BASE}/api/products/${id}`);
         setProduct(res.data);
@@ -155,7 +170,7 @@ const ProductDetailsPage: React.FC = () => {
         <Navbar />
         <div className="product-error">
           <h2>Oops!</h2>
-          <p>{error}</p>
+          <p>{error || 'Product not found.'}</p>
           <button className="btn-playful btn-primary" onClick={() => navigate('/shop')}>Back to Shop</button>
         </div>
         <Footer />
@@ -171,6 +186,8 @@ const ProductDetailsPage: React.FC = () => {
   const productTitle = `${product.name} | Pigglitz 3D Toys`;
   const productDesc = product.description || `Buy ${product.name} from Pigglitz. High-quality 3D printed toys.`;
   const productKeywords = product.seoKeywords || `${product.name}, ${product.category || 'toys'}, 3D printed toy, kids gift, pigglitz`;
+  
+  const productSlug = product.name ? product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : product._id;
 
   const jsonLd = {
     "@context": "https://schema.org/",
@@ -179,9 +196,13 @@ const ProductDetailsPage: React.FC = () => {
     "image": allImages.length > 0 ? allImages : ["https://pigglitz.com/logo.png"],
     "description": productDesc,
     "sku": product._id,
+    "brand": {
+      "@type": "Brand",
+      "name": "Pigglitz"
+    },
     "offers": {
       "@type": "Offer",
-      "url": `https://pigglitz.com/product/${product._id}`,
+      "url": `https://pigglitz.com/product/${productSlug}`,
       "priceCurrency": "INR",
       "price": product.price.replace(/[^0-9.]/g, '') || "0",
       "availability": "https://schema.org/InStock",
@@ -195,7 +216,7 @@ const ProductDetailsPage: React.FC = () => {
         title={productTitle} 
         description={productDesc} 
         keywords={productKeywords} 
-        url={`https://pigglitz.com/product/${product._id}`} 
+        url={`https://pigglitz.com/product/${productSlug}`} 
         image={mainImage || 'https://pigglitz.com/logo.png'} 
       />
       <Helmet>
@@ -272,6 +293,13 @@ const ProductDetailsPage: React.FC = () => {
               </div>
             )}
             
+            {/* Robust E-commerce Content for SEO & Users */}
+            <div className="seo-product-details" style={{ marginTop: '20px', fontSize: '0.95rem', color: '#555' }}>
+              <p style={{ marginBottom: '8px' }}><strong>Material:</strong> Premium, eco-friendly 3D printed PLA plastic (Non-toxic and safe for kids).</p>
+              <p style={{ marginBottom: '8px' }}><strong>Care Instructions:</strong> Wipe clean with a damp cloth. Do not expose to extreme heat.</p>
+              <p style={{ marginBottom: '8px' }}><strong>Uses:</strong> Perfect as a playful kids' toy, desk decoration, or personalized gift.</p>
+              <p style={{ marginBottom: '0' }}><strong>Shipping & Returns:</strong> Dispatched within 2-3 business days. 7-day return policy on defective items.</p>
+            </div>
 
             
             {modelsList.length > 0 && (

@@ -162,30 +162,21 @@ const AdminPanel: React.FC = () => {
   const [couponIsPublic, setCouponIsPublic] = useState(false);
   const [couponMsg, setCouponMsg] = useState('');
 
-  // ── Add Hero Slide form ──
-  const [slideTitle1, setSlideTitle1] = useState('Little Prints.');
-  const [slideTitle2, setSlideTitle2] = useState('Big Smiles.');
-  const [slideDesc, setSlideDesc] = useState('Welcome to Pigglitz, your 3D Printing Pitara!');
-  const [slideBtnText, setSlideBtnText] = useState('Shop Now');
-  const [slideBtnLink, setSlideBtnLink] = useState('/toys');
-  const [slideColor, setSlideColor] = useState('#FFC400');
-  const [slideEmoji, setSlideEmoji] = useState('🧸');
+  // ── Add Hero Banner form ──
+  const [slideBtnLink, setSlideBtnLink] = useState('');
   const [slideImageFile, setSlideImageFile] = useState<File|null>(null);
   const [slideImagePreview, setSlideImagePreview] = useState('');
   const [slideMsg, setSlideMsg] = useState('');
   const slideFileRef = useRef<HTMLInputElement>(null);
 
-  // ── Edit hero slide inline ──
+  // ── Edit hero banner inline ──
   const [editingSlide, setEditingSlide] = useState<HeroSlide|null>(null);
-  const [eSlideTitle1, setESlideTitle1] = useState('');
-  const [eSlideTitle2, setESlideTitle2] = useState('');
-  const [eSlideDesc, setESlideDesc] = useState('');
-  const [eSlideBtnText, setESlideBtnText] = useState('');
   const [eSlideBtnLink, setESlideBtnLink] = useState('');
-  const [eSlideColor, setESlideColor] = useState('#FFC400');
-  const [eSlideEmoji, setESlideEmoji] = useState('🧸');
   const [eSlideImageFile, setESlideImageFile] = useState<File|null>(null);
   const [eSlideMsg, setESlideMsg] = useState('');
+
+  // ── Custom Delete Confirmation Modal ──
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, type: 'product' | 'reel' | 'coupon' | 'slide' | null }>({ id: '', type: null });
 
   const navigate = useNavigate();
   const token = () => localStorage.getItem('token');
@@ -326,10 +317,8 @@ const AdminPanel: React.FC = () => {
     catch (e) { console.error(e); }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!window.confirm('Delete this toy?')) return;
-    try { await axios.delete(`${API_BASE}/api/products/${id}`, authHeader()); fetchProducts(); }
-    catch (e) { console.error(e); }
+  const handleDeleteProduct = (id: string) => {
+    setDeleteConfirm({ id, type: 'product' });
   };
 
   // ── Add reel ──
@@ -381,10 +370,8 @@ const AdminPanel: React.FC = () => {
     } catch { setEReelMsg('❌ Save failed.'); }
   };
 
-  const handleDeleteReel = async (id: string) => {
-    if (!window.confirm('Delete this reel?')) return;
-    try { await axios.delete(`${API_BASE}/api/reels/${id}`, authHeader()); fetchReels(); }
-    catch (e) { console.error(e); }
+  const handleDeleteReel = (id: string) => {
+    setDeleteConfirm({ id, type: 'reel' });
   };
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
@@ -414,10 +401,8 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleDeleteCoupon = async (id: string) => {
-    if (!window.confirm('Delete this coupon?')) return;
-    try { await axios.delete(`${API_BASE}/api/coupons/${id}`, authHeader()); fetchCoupons(); }
-    catch (e) { console.error(e); }
+  const handleDeleteCoupon = (id: string) => {
+    setDeleteConfirm({ id, type: 'coupon' });
   };
 
   const handleSaveShowcaseVideo = async (e: React.FormEvent) => {
@@ -434,46 +419,29 @@ const AdminPanel: React.FC = () => {
     e.preventDefault(); setSlideMsg('');
     try {
       const fd = new FormData();
-      fd.append('titleLine1', slideTitle1);
-      fd.append('titleLine2', slideTitle2);
-      fd.append('description', slideDesc);
-      fd.append('buttonText', slideBtnText);
       fd.append('buttonLink', slideBtnLink);
-      fd.append('backgroundColor', slideColor);
-      fd.append('emoji', slideEmoji);
       if (slideImageFile) fd.append('image', slideImageFile);
 
       await axios.post(`${API_BASE}/api/hero-slides`, fd, {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
       });
-      setSlideTitle1('Little Prints.'); setSlideTitle2('Big Smiles.');
-      setSlideDesc('Welcome to Pigglitz, your 3D Printing Pitara!');
-      setSlideBtnText('Shop Now'); setSlideBtnLink('/toys');
-      setSlideColor('#FFC400'); setSlideEmoji('🧸');
+      setSlideBtnLink('');
       setSlideImageFile(null); setSlideImagePreview('');
       if (slideFileRef.current) slideFileRef.current.value = '';
-      setSlideMsg('✅ Hero Slide added!');
+      setSlideMsg('✅ Hero Banner added!');
       fetchHeroSlides();
     } catch (err: any) {
-      setSlideMsg('❌ Failed to add hero slide.');
+      setSlideMsg('❌ Failed to add hero banner.');
     }
   };
 
-  const handleDeleteHeroSlide = async (id: string) => {
-    if (!window.confirm('Delete this hero slide?')) return;
-    try { await axios.delete(`${API_BASE}/api/hero-slides/${id}`, authHeader()); fetchHeroSlides(); }
-    catch (e) { console.error(e); }
+  const handleDeleteHeroSlide = (id: string) => {
+    setDeleteConfirm({ id, type: 'slide' });
   };
 
   const openEditSlide = (slide: HeroSlide) => {
     setEditingSlide(slide);
-    setESlideTitle1(slide.titleLine1);
-    setESlideTitle2(slide.titleLine2);
-    setESlideDesc(slide.description);
-    setESlideBtnText(slide.buttonText || 'Shop Now');
-    setESlideBtnLink(slide.buttonLink || '/toys');
-    setESlideColor(slide.backgroundColor || '#FFC400');
-    setESlideEmoji(slide.emoji || '🧸');
+    setESlideBtnLink(slide.buttonLink || '');
     setESlideImageFile(null);
     setESlideMsg('');
   };
@@ -482,13 +450,7 @@ const AdminPanel: React.FC = () => {
     e.preventDefault(); if (!editingSlide) return; setESlideMsg('');
     try {
       const fd = new FormData();
-      fd.append('titleLine1', eSlideTitle1);
-      fd.append('titleLine2', eSlideTitle2);
-      fd.append('description', eSlideDesc);
-      fd.append('buttonText', eSlideBtnText);
       fd.append('buttonLink', eSlideBtnLink);
-      fd.append('backgroundColor', eSlideColor);
-      fd.append('emoji', eSlideEmoji);
       if (eSlideImageFile) fd.append('image', eSlideImageFile);
       
       await axios.put(`${API_BASE}/api/hero-slides/${editingSlide._id}`, fd, {
@@ -781,24 +743,16 @@ const AdminPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* ══ HERO SLIDES MANAGEMENT ══ */}
-        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>🖼️</span> Hero Slides Management</div>
+        {/* ══ HERO BANNERS MANAGEMENT ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>🖼️</span> Hero Banners Management</div>
         <div className="admin-content" style={{ marginBottom: '2rem' }}>
           <div className="admin-form-container">
-            <h3 className="text-pink" style={{marginBottom:'1.2rem'}}>Add New Hero Slide</h3>
+            <h3 className="text-pink" style={{marginBottom:'1.2rem'}}>Add New Hero Banner</h3>
             <form onSubmit={handleAddHeroSlide} className="admin-form">
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <input type="text" placeholder="Title Line 1" value={slideTitle1} onChange={e => setSlideTitle1(e.target.value)} required className="playful-input" style={{ flex: 1 }} />
-                <input type="text" placeholder="Title Line 2" value={slideTitle2} onChange={e => setSlideTitle2(e.target.value)} required className="playful-input" style={{ flex: 1 }} />
-              </div>
-              <textarea placeholder="Description" value={slideDesc} onChange={e => setSlideDesc(e.target.value)} required className="playful-input" style={{ minHeight: '60px' }} />
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <input type="text" placeholder="Button Text" value={slideBtnText} onChange={e => setSlideBtnText(e.target.value)} required className="playful-input" style={{ flex: 1 }} />
-                <input type="text" placeholder="Button Link (e.g. /toys)" value={slideBtnLink} onChange={e => setSlideBtnLink(e.target.value)} required className="playful-input" style={{ flex: 1 }} />
-              </div>
+              <input type="text" placeholder="Banner Link (e.g. /toys or URL)" value={slideBtnLink} onChange={e => setSlideBtnLink(e.target.value)} className="playful-input" />
               
               <div className="image-upload-area">
-                <label className="field-label">Slide Image (Optional fallback to Emoji)</label>
+                <label className="field-label">Banner Image</label>
                 {slideImagePreview ? (
                   <div className="image-preview-box">
                     <img src={slideImagePreview} alt="Preview" className="image-preview" />
@@ -809,45 +763,30 @@ const AdminPanel: React.FC = () => {
                 ) : (
                   <label className="image-drop-zone" htmlFor="slide-image-input">
                     <Upload size={28} color="var(--color-purple)" />
-                    <span>Upload Slide Image</span>
+                    <span>Upload Banner Image</span>
                   </label>
                 )}
                 <input id="slide-image-input" ref={slideFileRef} type="file" accept="image/*"
                   onChange={e => { const f=e.target.files?.[0]; if(f){setSlideImageFile(f);setSlideImagePreview(URL.createObjectURL(f));} }}
-                  style={{ display:'none' }} />
-              </div>
-
-              <div className="color-picker-container">
-                <label>Background Color:</label>
-                <input type="color" value={slideColor} onChange={e => setSlideColor(e.target.value)} className="color-input" />
-                <span className="color-preview" style={{ background: slideColor }} />
+                  style={{ display:'none' }} required />
               </div>
 
               <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '1rem' }}>
-                <Plus size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Add Hero Slide
+                <Plus size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Add Hero Banner
               </button>
               {slideMsg && <p className="reel-msg">{slideMsg}</p>}
             </form>
           </div>
 
           <div className="admin-list-container">
-            <h3 className="text-blue" style={{marginBottom:'1.2rem'}}>Current Hero Slides ({heroSlides.length})</h3>
+            <h3 className="text-blue" style={{marginBottom:'1.2rem'}}>Current Hero Banners ({heroSlides.length})</h3>
             <div className="admin-product-list">
               {heroSlides.map(slide => (
                 <div key={slide._id}>
                   {editingSlide?._id === slide._id ? (
                     <form onSubmit={handleSaveSlide} className="reel-edit-row" style={{ flexDirection: 'column', gap: '0.8rem', alignItems: 'stretch' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" value={eSlideTitle1} onChange={e=>setESlideTitle1(e.target.value)} required className="playful-input reel-edit-input" placeholder="Title 1" style={{ flex: 1 }} />
-                        <input type="text" value={eSlideTitle2} onChange={e=>setESlideTitle2(e.target.value)} required className="playful-input reel-edit-input" placeholder="Title 2" style={{ flex: 1 }} />
-                      </div>
-                      <textarea value={eSlideDesc} onChange={e=>setESlideDesc(e.target.value)} required className="playful-input reel-edit-input" placeholder="Description" style={{ minHeight: '60px' }} />
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" value={eSlideBtnText} onChange={e=>setESlideBtnText(e.target.value)} required className="playful-input reel-edit-input" placeholder="Button Text" style={{ flex: 1 }} />
-                        <input type="text" value={eSlideBtnLink} onChange={e=>setESlideBtnLink(e.target.value)} required className="playful-input reel-edit-input" placeholder="Button Link (/toys)" style={{ flex: 1 }} />
-                      </div>
+                      <input type="text" value={eSlideBtnLink} onChange={e=>setESlideBtnLink(e.target.value)} className="playful-input reel-edit-input" placeholder="Banner Link (/toys)" />
                       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                        <input type="color" value={eSlideColor} onChange={e=>setESlideColor(e.target.value)} className="color-input" title="Background Color" />
                         <label htmlFor={`slide-edit-image-${slide._id}`} className="reel-thumb-upload-btn" title="Replace Image">
                           <Upload size={14} style={{marginRight:'0.3rem'}}/> {eSlideImageFile ? '✅ Image Selected' : 'Replace Image'}
                         </label>
@@ -860,14 +799,12 @@ const AdminPanel: React.FC = () => {
                       {eSlideMsg && <span className="reel-msg">{eSlideMsg}</span>}
                     </form>
                   ) : (
-                    <div className="admin-product-item" style={{ borderLeftColor: slide.backgroundColor }}>
-                      <div className="product-swatch" style={{ background: slide.imageUrl?'#f0f0f0':slide.backgroundColor }}>
-                        {slide.imageUrl ? <img src={slide.imageUrl} alt="slide" style={{width:'100%',height:'100%',objectFit:'contain'}} /> : slide.emoji}
+                    <div className="admin-product-item" style={{ borderLeftColor: 'var(--color-purple)' }}>
+                      <div className="product-swatch" style={{ background: '#f0f0f0', width: '120px' }}>
+                        {slide.imageUrl ? <img src={slide.imageUrl} alt="banner" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <span style={{fontSize: '0.8rem'}}>No Image</span>}
                       </div>
                       <div className="product-details">
-                        <h3>{slide.titleLine1} {slide.titleLine2}</h3>
-                        <p style={{fontSize: '0.8rem', color: '#666'}}>{slide.description}</p>
-                        <p style={{fontSize: '0.8rem', color: 'var(--color-purple)'}}>Link: {slide.buttonLink}</p>
+                        <p style={{fontSize: '0.9rem', color: 'var(--color-purple)'}}><strong>Link:</strong> {slide.buttonLink || 'None'}</p>
                       </div>
                       <div className="product-actions">
                         <button className="toggle-btn edit-toggle-btn" onClick={() => openEditSlide(slide)} title="Edit">
@@ -881,7 +818,7 @@ const AdminPanel: React.FC = () => {
                   )}
                 </div>
               ))}
-              {heroSlides.length === 0 && <p style={{color:'#888'}}>No slides yet.</p>}
+              {heroSlides.length === 0 && <p style={{color:'#888'}}>No banners yet.</p>}
             </div>
           </div>
         </div>
@@ -1254,6 +1191,42 @@ const AdminPanel: React.FC = () => {
         </div>
 
       </div>
+
+      {/* ══ DELETE CONFIRMATION MODAL ══ */}
+      {deleteConfirm.type && (
+        <div className="edit-modal-backdrop" onClick={() => setDeleteConfirm({ id: '', type: null })}>
+          <div className="edit-modal" style={{ maxWidth: '400px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <div className="edit-modal-header" style={{ justifyContent: 'center' }}>
+              <h3 className="text-pink" style={{ margin: 0 }}>🗑️ Confirm Deletion</h3>
+            </div>
+            <p style={{ margin: '1.5rem 0', color: '#555' }}>
+              Are you sure you want to delete this {deleteConfirm.type}? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <button className="btn-playful btn-secondary" style={{ flex: 1 }} onClick={() => setDeleteConfirm({ id: '', type: null })}>
+                Cancel
+              </button>
+              <button 
+                className="btn-playful btn-danger" 
+                style={{ flex: 1 }} 
+                onClick={async () => {
+                  const { id, type } = deleteConfirm;
+                  try {
+                    if (type === 'product') { await axios.delete(`${API_BASE}/api/products/${id}`, authHeader()); fetchProducts(); }
+                    else if (type === 'reel') { await axios.delete(`${API_BASE}/api/reels/${id}`, authHeader()); fetchReels(); }
+                    else if (type === 'coupon') { await axios.delete(`${API_BASE}/api/coupons/${id}`, authHeader()); fetchCoupons(); }
+                    else if (type === 'slide') { await axios.delete(`${API_BASE}/api/hero-slides/${id}`, authHeader()); fetchHeroSlides(); }
+                  } catch (e) { console.error(e); }
+                  setDeleteConfirm({ id: '', type: null });
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

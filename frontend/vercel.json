@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://darkgreen-kudu-992852.hostingersite.com/sitemap.xml"
+    },
+    {
+      "source": "/product/:slug*",
+      "destination": "https://darkgreen-kudu-992852.hostingersite.com/seo/product/:slug*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

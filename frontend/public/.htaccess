@@ -1,6 +1,14 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  
+  # Forward sitemap.xml to PHP proxy script (Hostinger Shared Hosting compatible)
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+  # Forward product pages to PHP proxy for SEO injection
+  RewriteRule ^product/(.*)$ product.php?slug=$1 [L,QSA]
+
+  # Existing React Router fallback rules
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
