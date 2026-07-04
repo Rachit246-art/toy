@@ -162,7 +162,11 @@ const Coupon = mongoose.model('Coupon', CouponSchema);
 const SiteSettingsSchema = new mongoose.Schema({
   showcaseVideoUrl: { type: String, default: "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1" },
   announcementText1: { type: String, default: "🔥 FREE SHIPPING ABOVE ₹1000" },
-  announcementText2: { type: String, default: "🎉 USE CODE WIGGLE10 FOR 10% OFF." }
+  announcementText2: { type: String, default: "🎉 USE CODE WIGGLE10 FOR 10% OFF." },
+  partnerBannerLeftImage: { type: String, default: "" },
+  partnerBannerLeftLink: { type: String, default: "" },
+  partnerBannerRightImage: { type: String, default: "" },
+  partnerBannerRightLink: { type: String, default: "" }
 });
 const SiteSettings = mongoose.model('SiteSettings', SiteSettingsSchema);
 
@@ -215,6 +219,14 @@ const OrderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const Order = mongoose.model('Order', OrderSchema);
+
+const ChatbotLeadSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+const ChatbotLead = mongoose.model('ChatbotLead', ChatbotLeadSchema);
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
@@ -334,6 +346,27 @@ const seedAdminUser = async () => {
     console.error('❌ Failed to seed admin user:', err);
   }
 };
+
+// 1e. Chatbot Leads Routes
+app.post('/api/chatbot-leads', async (req, res) => {
+  try {
+    const newLead = new ChatbotLead(req.body);
+    await newLead.save();
+    res.status(201).json(newLead);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error saving lead' });
+  }
+});
+
+app.get('/api/chatbot-leads', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const leads = await ChatbotLead.find().sort({ createdAt: -1 });
+    res.json(leads);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error fetching leads' });
+  }
+});
 
 // 2. Get Products Route
 app.get('/api/products', async (req, res) => {
@@ -532,6 +565,29 @@ app.post('/api/seed', async (req, res) => {
     ];
     await Product.insertMany(sampleProducts);
     res.json({ message: 'Database seeded' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 7d. Chatbot Leads Routes
+app.post('/api/chatbot-leads', async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    if (!name || !email || !phone) return res.status(400).json({ message: 'Missing fields' });
+    const lead = new ChatbotLead({ name, email, phone });
+    await lead.save();
+    res.status(201).json(lead);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/chatbot-leads', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const leads = await ChatbotLead.find().sort({ createdAt: -1 });
+    res.json(leads);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -885,6 +941,53 @@ app.put('/api/settings/announcements', authMiddleware, async (req, res) => {
       announcementText2: settings.announcementText2 
     });
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 18b. Get Partner Banners (Public)
+app.get('/api/settings/partner-banners', async (req, res) => {
+  try {
+    let settings = await SiteSettings.findOne();
+    if (!settings) settings = await SiteSettings.create({});
+    res.json({
+      leftImage: settings.partnerBannerLeftImage,
+      leftLink: settings.partnerBannerLeftLink,
+      rightImage: settings.partnerBannerRightImage,
+      rightLink: settings.partnerBannerRightLink
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 18c. Update Partner Banners (Admin Only)
+app.put('/api/settings/partner-banners', authMiddleware, uploadSlide.fields([{ name: 'leftImage', maxCount: 1 }, { name: 'rightImage', maxCount: 1 }]), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { leftLink, rightLink } = req.body;
+    let settings = await SiteSettings.findOne();
+    if (!settings) settings = await SiteSettings.create({});
+
+    if (leftLink !== undefined) settings.partnerBannerLeftLink = leftLink;
+    if (rightLink !== undefined) settings.partnerBannerRightLink = rightLink;
+
+    if (req.files && req.files['leftImage']) {
+      settings.partnerBannerLeftImage = req.files['leftImage'][0].path;
+    }
+    if (req.files && req.files['rightImage']) {
+      settings.partnerBannerRightImage = req.files['rightImage'][0].path;
+    }
+
+    await settings.save();
+    res.json({
+      leftImage: settings.partnerBannerLeftImage,
+      leftLink: settings.partnerBannerLeftLink,
+      rightImage: settings.partnerBannerRightImage,
+      rightLink: settings.partnerBannerRightLink
+    });
+  } catch (err) {
+    console.error('Update partner banners error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

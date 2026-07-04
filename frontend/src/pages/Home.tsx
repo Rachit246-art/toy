@@ -83,6 +83,7 @@ const Home: React.FC = () => {
   const [products, setProducts]         = useState<Product[]>([]);
   const [featuredProducts, setFeatured] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals]   = useState<Product[]>([]);
+  const [partnerBanners, setPartnerBanners] = useState({ leftImage: '', leftLink: '', rightImage: '', rightLink: '' });
   const [showcaseUrl, setShowcaseUrl]   = useState('https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1');
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -137,6 +138,13 @@ const Home: React.FC = () => {
         if (res.data && res.data.showcaseVideoUrl) {
           setShowcaseUrl(res.data.showcaseVideoUrl);
         }
+      })
+      .catch(() => {});
+
+    // Partner banners
+    axios.get(`${API_BASE}/api/settings/partner-banners`)
+      .then(res => {
+        if (res.data) setPartnerBanners(res.data);
       })
       .catch(() => {});
   }, []);
@@ -229,6 +237,36 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* ── PARTNER BANNERS ── */}
+      {(partnerBanners.leftImage || partnerBanners.rightImage) && (
+        <section className="home-section partner-banners-section">
+          <div className="container">
+            <div className="section-head" style={{ marginBottom: '2.5rem' }}>
+              <div>
+                <span className="section-pill pink-pill">
+                  <Star size={13} fill="var(--color-pink)" color="var(--color-pink)" /> Our Partners
+                </span>
+                <h2 className="section-title text-pink">More To Explore</h2>
+                <p className="section-sub">Check out our recommended tools and partner brands.</p>
+              </div>
+            </div>
+            
+            <div className="partner-banners-container">
+              {partnerBanners.leftImage && (
+                <a href={partnerBanners.leftLink || '#'} target={partnerBanners.leftLink?.startsWith('http') ? '_blank' : '_self'} rel="noreferrer" className="partner-banner partner-banner-left">
+                  <img src={partnerBanners.leftImage} alt="Partner Left" />
+                </a>
+              )}
+              {partnerBanners.rightImage && (
+                <a href={partnerBanners.rightLink || '#'} target={partnerBanners.rightLink?.startsWith('http') ? '_blank' : '_self'} rel="noreferrer" className="partner-banner partner-banner-right">
+                  <img src={partnerBanners.rightImage} alt="Partner Right" />
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── 3. FEATURED (sliding) ── */}
       <section className="home-section featured-section">

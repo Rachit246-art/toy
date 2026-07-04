@@ -16,6 +16,8 @@ import UserDashboard from './pages/UserDashboard';
 import BundlePage from './pages/BundlePage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CursorSprinkles from './components/CursorSprinkles';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
+import GlobalChatbot from './components/GlobalChatbot';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
         <Router>
           <div className="App">
             <CursorSprinkles />
+            <FloatingWhatsApp />
+            <GlobalChatbot />
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

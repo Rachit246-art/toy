@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Trash2, Film, Plus, Star, Zap, CheckCircle, Circle, Upload, X, Home, Edit2, Save, Ticket } from 'lucide-react';
+import { Trash2, Film, Plus, Star, Zap, CheckCircle, Circle, Upload, X, Home, Edit2, Save, Ticket, MessageSquare } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import API_BASE from '../config';
 import './AdminPanel.css';
@@ -58,6 +58,14 @@ interface HeroSlide {
   emoji: string;
 }
 
+interface ChatbotLead {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+}
+
 const EMOJI_OPTIONS = ['🧸','🚀','🦕','🤖','🦄','🎠','🐉','🎪','🎡','🎨','🦊','🐙','🦋','🐻','🦁','🐬','🦸','🌟'];
 
 function extractId(url: string): string {
@@ -81,6 +89,7 @@ const AdminPanel: React.FC = () => {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [chatbotLeads, setChatbotLeads] = useState<ChatbotLead[]>([]);
 
   // ── Site Settings ──
   const [showcaseUrl, setShowcaseUrl] = useState('');
@@ -169,6 +178,18 @@ const AdminPanel: React.FC = () => {
   const [slideMsg, setSlideMsg] = useState('');
   const slideFileRef = useRef<HTMLInputElement>(null);
 
+  // ── Partner Banners form ──
+  const [partnerLeftLink, setPartnerLeftLink] = useState('');
+  const [partnerRightLink, setPartnerRightLink] = useState('');
+  const [partnerLeftFile, setPartnerLeftFile] = useState<File|null>(null);
+  const [partnerRightFile, setPartnerRightFile] = useState<File|null>(null);
+  const [partnerLeftPreview, setPartnerLeftPreview] = useState('');
+  const [partnerRightPreview, setPartnerRightPreview] = useState('');
+  const [partnerMsg, setPartnerMsg] = useState('');
+  const [isEditingPartnerBanners, setIsEditingPartnerBanners] = useState(false);
+  const partnerLeftRef = useRef<HTMLInputElement>(null);
+  const partnerRightRef = useRef<HTMLInputElement>(null);
+
   // ── Edit hero banner inline ──
   const [editingSlide, setEditingSlide] = useState<HeroSlide|null>(null);
   const [eSlideBtnLink, setESlideBtnLink] = useState('');
@@ -224,10 +245,23 @@ const AdminPanel: React.FC = () => {
     }
     catch (e) { console.error(e); }
   };
+  const fetchChatbotLeads = async () => {
+    try { const r = await axios.get(`${API_BASE}/api/chatbot-leads`, authHeader()); setChatbotLeads(r.data); }
+    catch (e) { console.error(e); }
+  };
+  const fetchPartnerBanners = async () => {
+    try { 
+      const r = await axios.get(`${API_BASE}/api/settings/partner-banners`); 
+      setPartnerLeftLink(r.data.leftLink || '');
+      setPartnerRightLink(r.data.rightLink || '');
+      setPartnerLeftPreview(r.data.leftImage || '');
+      setPartnerRightPreview(r.data.rightImage || '');
+    } catch (e) { console.error(e); }
+  };
 
   useEffect(() => {
     if (!token()) { navigate('/login', { replace: true }); return; }
-    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers(); fetchCoupons(); fetchShowcaseVideo(); fetchAnnouncements(); fetchHeroSlides();
+    checkDb(); fetchProducts(); fetchReels(); fetchOrders(); fetchUsers(); fetchCoupons(); fetchShowcaseVideo(); fetchAnnouncements(); fetchHeroSlides(); fetchPartnerBanners(); fetchChatbotLeads();
   }, [navigate]);
 
   const handleSaveAnnouncements = async (e: React.FormEvent) => {
@@ -239,6 +273,22 @@ const AdminPanel: React.FC = () => {
       );
       setAnnouncementMsg('✅ Announcements updated!');
     } catch { setAnnouncementMsg('❌ Failed to update announcements.'); }
+  };
+
+  const handleSavePartnerBanners = async (e: React.FormEvent) => {
+    e.preventDefault(); setPartnerMsg('');
+    try {
+      const fd = new FormData();
+      fd.append('leftLink', partnerLeftLink);
+      fd.append('rightLink', partnerRightLink);
+      if (partnerLeftFile) fd.append('leftImage', partnerLeftFile);
+      if (partnerRightFile) fd.append('rightImage', partnerRightFile);
+      
+      const r = await axios.put(`${API_BASE}/api/settings/partner-banners`, fd, { headers: { Authorization: `Bearer ${token()}` } });
+      setPartnerMsg('✅ Partner Banners updated!');
+      setPartnerLeftPreview(r.data.leftImage || '');
+      setPartnerRightPreview(r.data.rightImage || '');
+    } catch { setPartnerMsg('❌ Failed to update partner banners.'); }
   };
 
   // ── Add product ──
@@ -823,6 +873,117 @@ const AdminPanel: React.FC = () => {
           </div>
         </div>
 
+        {/* ══ PARTNER BANNERS MANAGEMENT ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>🤝</span> Partner Banners Management</div>
+        <div className="admin-content" style={{ marginBottom: '2rem' }}>
+          <div className="admin-form-container">
+            {!isEditingPartnerBanners ? (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 className="text-pink" style={{ margin: 0 }}>Current Partner Banners</h3>
+                  <button type="button" className="action-btn edit" onClick={() => setIsEditingPartnerBanners(true)}>
+                    <Edit2 size={16} /> Edit Banners
+                  </button>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '250px', background: '#f5f5f5', padding: '1rem', borderRadius: '12px' }}>
+                    <h4 style={{ marginBottom: '1rem', color: '#555' }}>Left Banner</h4>
+                    {partnerLeftPreview ? (
+                      <div>
+                        <img src={partnerLeftPreview} alt="Left Banner" style={{ width: '100%', borderRadius: '8px', marginBottom: '1rem', maxHeight: '200px', objectFit: 'cover' }} />
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', wordBreak: 'break-all' }}><strong>Link:</strong> {partnerLeftLink || 'None'}</p>
+                      </div>
+                    ) : (
+                      <p style={{ color: '#888', fontStyle: 'italic' }}>No left banner set.</p>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: 1, minWidth: '250px', background: '#f5f5f5', padding: '1rem', borderRadius: '12px' }}>
+                    <h4 style={{ marginBottom: '1rem', color: '#555' }}>Right Banner</h4>
+                    {partnerRightPreview ? (
+                      <div>
+                        <img src={partnerRightPreview} alt="Right Banner" style={{ width: '100%', borderRadius: '8px', marginBottom: '1rem', maxHeight: '200px', objectFit: 'cover' }} />
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', wordBreak: 'break-all' }}><strong>Link:</strong> {partnerRightLink || 'None'}</p>
+                      </div>
+                    ) : (
+                      <p style={{ color: '#888', fontStyle: 'italic' }}>No right banner set.</p>
+                    )}
+                  </div>
+                </div>
+                {partnerMsg && <p className="success-msg" style={{ marginTop: '1.5rem' }}>{partnerMsg}</p>}
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 className="text-pink" style={{ margin: 0 }}>Edit Partner Banners</h3>
+                  <button type="button" className="action-btn delete" onClick={() => setIsEditingPartnerBanners(false)}>
+                    <X size={16} /> Cancel
+                  </button>
+                </div>
+                <form onSubmit={async (e) => {
+                  await handleSavePartnerBanners(e);
+                  setIsEditingPartnerBanners(false);
+                }} className="admin-form">
+                  <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                    {/* Left Banner */}
+                    <div style={{ flex: 1, minWidth: '250px' }}>
+                      <h4>Left Banner</h4>
+                      <input type="text" placeholder="Left Link URL" value={partnerLeftLink} onChange={e => setPartnerLeftLink(e.target.value)} className="playful-input" style={{ marginBottom: '1rem' }} />
+                      <div className="image-upload-area">
+                        {partnerLeftPreview ? (
+                          <div className="image-preview-box">
+                            <img src={partnerLeftPreview} alt="Left Preview" className="image-preview" />
+                            <button type="button" className="image-clear-btn" onClick={() => { setPartnerLeftFile(null); setPartnerLeftPreview(''); if(partnerLeftRef.current) partnerLeftRef.current.value=''; }}>
+                              <X size={16} /> Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="image-drop-zone" htmlFor="partner-left-input">
+                            <Upload size={28} color="var(--color-purple)" />
+                            <span>Upload Left Image</span>
+                          </label>
+                        )}
+                        <input id="partner-left-input" ref={partnerLeftRef} type="file" accept="image/*"
+                          onChange={e => { const f=e.target.files?.[0]; if(f){setPartnerLeftFile(f);setPartnerLeftPreview(URL.createObjectURL(f));} }}
+                          style={{ display:'none' }} />
+                      </div>
+                    </div>
+
+                    {/* Right Banner */}
+                    <div style={{ flex: 1, minWidth: '250px' }}>
+                      <h4>Right Banner</h4>
+                      <input type="text" placeholder="Right Link URL" value={partnerRightLink} onChange={e => setPartnerRightLink(e.target.value)} className="playful-input" style={{ marginBottom: '1rem' }} />
+                      <div className="image-upload-area">
+                        {partnerRightPreview ? (
+                          <div className="image-preview-box">
+                            <img src={partnerRightPreview} alt="Right Preview" className="image-preview" />
+                            <button type="button" className="image-clear-btn" onClick={() => { setPartnerRightFile(null); setPartnerRightPreview(''); if(partnerRightRef.current) partnerRightRef.current.value=''; }}>
+                              <X size={16} /> Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="image-drop-zone" htmlFor="partner-right-input">
+                            <Upload size={28} color="var(--color-purple)" />
+                            <span>Upload Right Image</span>
+                          </label>
+                        )}
+                        <input id="partner-right-input" ref={partnerRightRef} type="file" accept="image/*"
+                          onChange={e => { const f=e.target.files?.[0]; if(f){setPartnerRightFile(f);setPartnerRightPreview(URL.createObjectURL(f));} }}
+                          style={{ display:'none' }} />
+                      </div>
+                    </div>
+                  </div>
+                  <button type="submit" className="save-btn" style={{ marginTop: '2rem' }}>
+                    <Save size={18} /> Save Partner Banners
+                  </button>
+                  {partnerMsg && <p className="success-msg">{partnerMsg}</p>}
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ══ VIDEO REELS ══ */}
         <div className="admin-section-title" style={{ marginTop: '3rem' }}><span>📺</span> Main Showcase Video</div>
         <div className="admin-content" style={{ marginBottom: '2rem' }}>
@@ -1187,6 +1348,37 @@ const AdminPanel: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        {/* ══ CHATBOT LEADS ══ */}
+        <div className="admin-section-title" style={{ marginTop: '3rem' }}><span><MessageSquare size={20} style={{verticalAlign:'middle', marginRight:'0.5rem'}}/></span> Chatbot Leads</div>
+        <div className="admin-list-container">
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(!chatbotLeads || !Array.isArray(chatbotLeads) || chatbotLeads.length === 0) ? (
+                  <tr><td colSpan={4} style={{textAlign:'center', padding:'1.5rem', color:'#888'}}>No leads yet.</td></tr>
+                ) : (
+                  chatbotLeads.map(lead => (
+                    <tr key={lead._id}>
+                      <td><strong>{lead.name}</strong></td>
+                      <td>{lead.email}</td>
+                      <td>{lead.phone}</td>
+                      <td>{new Date(lead.createdAt).toLocaleDateString()} {new Date(lead.createdAt).toLocaleTimeString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
