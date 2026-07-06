@@ -384,8 +384,6 @@
   padding: 2rem;
   border-radius: 28px;
   border: 3px solid var(--color-blue);
-  max-height: 700px;
-  overflow-y: auto;
   min-width: 0;
 }
 .admin-list-container h2 { margin-bottom: 1.5rem; }
@@ -398,52 +396,207 @@
 }
 
 .admin-product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+/* ── Product Card Layout ── */
+.admin-product-item-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  border: 1px solid #f0f0f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ── Product item ── */
-.admin-product-item {
+.admin-product-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.admin-card-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #f8f9fa;
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  justify-content: center;
+}
+
+.admin-card-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-card-actions-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.admin-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #eee;
   background: white;
-  padding: 0.9rem 1rem;
-  border-radius: 18px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  border-left: 7px solid;
-  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
 }
 
-.product-swatch {
-  width: 52px; height: 52px;
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem;
-  flex-shrink: 0;
+.admin-icon-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.admin-icon-btn.delete-btn:hover {
+  background: #ffebee;
+  color: #d32f2f;
+  border-color: #ffcdd2;
+}
+
+.admin-icon-btn.edit-btn:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #bbdefb;
+}
+
+.admin-card-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.admin-card-meta {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.4;
+  font-family: var(--font-heading);
 }
 
-.product-details { flex: 1; min-width: 0; }
-.product-details h3 {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  color: var(--color-purple);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.admin-card-rating {
+  font-size: 0.85rem;
+  color: #f5a623;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.product-details p { font-size: 0.88rem; color: var(--color-pink); font-weight: 700; }
 
-.product-flags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.3rem; }
-.flag-badge {
-  font-size: 0.72rem;
-  font-family: var(--font-heading);
+.admin-card-rating .rating-num {
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.admin-card-price-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-card-price {
+  font-size: 1.1rem;
   font-weight: 700;
-  padding: 0.15rem 0.55rem;
-  border-radius: 50px;
+  color: #1a73e8; /* Blue price like in screenshot */
 }
-.flag-featured { background: #fff8e1; color: #b8860b; border: 1.5px solid #f0c040; }
-.flag-new      { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #81c784; }
+
+.admin-card-stock {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-card-stock.text-green {
+  color: #00c853;
+}
+
+.admin-card-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto; /* push to bottom if title is short */
+}
+
+.admin-block-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin-block-btn.btn-featured {
+  background-color: #f39c12;
+  color: white;
+}
+
+.admin-block-btn.btn-new {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.admin-block-btn.btn-default {
+  background-color: #4285f4;
+  color: white;
+}
+
+.admin-block-btn.btn-stock {
+  background-color: #e0e0e0;
+  color: #555;
+}
+
+.admin-block-btn.btn-stock:hover {
+  background-color: #d0d0d0;
+}
+
+.admin-block-btn:not(.btn-stock):hover {
+  filter: brightness(1.1);
+}
 
 .product-actions {
   display: flex;
@@ -479,6 +632,19 @@
   box-shadow: 0 3px 0 #cc0000;
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
+}
+
+/* ── Toy Management Overrides ── */
+.admin-content.toy-management-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.admin-list-container.toy-management-list {
+  background-color: transparent;
+  border: none;
+  padding: 0;
 }
 .btn-danger:hover { background-color: #ff1a1a; }
 

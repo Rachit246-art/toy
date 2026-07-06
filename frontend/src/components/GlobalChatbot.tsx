@@ -14,6 +14,7 @@ const GlobalChatbot: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [requirement, setRequirement] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Categories State
@@ -32,7 +33,7 @@ const GlobalChatbot: React.FC = () => {
     if (!name || !email || !phone) return;
     setIsSubmitting(true);
     try {
-      await axios.post(`${API_BASE}/api/chatbot-leads`, { name, email, phone });
+      await axios.post(`${API_BASE}/api/chatbot-leads`, { name, email, phone, requirement });
       setStage(2);
     } catch (error) {
       console.error('Error saving lead:', error);
@@ -75,7 +76,7 @@ const GlobalChatbot: React.FC = () => {
             <div className="chatbot-header-actions" style={{ display: 'flex', gap: '5px' }}>
               <button 
                 className="chatbot-back-btn" 
-                onClick={() => { setStage(1); setName(''); setEmail(''); setPhone(''); }} 
+                onClick={() => { setStage(1); setName(''); setEmail(''); setPhone(''); setRequirement(''); }} 
                 title="Restart Conversation"
               >
                 <RefreshCw size={16} />
@@ -115,6 +116,22 @@ const GlobalChatbot: React.FC = () => {
                     value={phone} 
                     onChange={e => setPhone(e.target.value)} 
                     required 
+                  />
+                  <textarea 
+                    placeholder="Your Requirement (Optional)" 
+                    value={requirement} 
+                    onChange={e => setRequirement(e.target.value)} 
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '0.6rem 0.8rem',
+                      marginBottom: '0.8rem',
+                      borderRadius: '8px',
+                      border: '2px solid #e0e0e0',
+                      fontSize: '0.9rem',
+                      fontFamily: 'inherit',
+                      resize: 'none'
+                    }}
                   />
                   <button type="submit" disabled={isSubmitting} className="chatbot-submit">
                     {isSubmitting ? 'Sending...' : 'Continue'} <Send size={16} />

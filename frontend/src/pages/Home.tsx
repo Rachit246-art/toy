@@ -154,9 +154,9 @@ const Home: React.FC = () => {
   return (
     <div className="home-page">
       <SEO 
-        title="Pigglitz - 3D Printing Pitara | Custom 3D Printed Toys" 
-        description="Discover magical, colorful, and fun 3D printed toys at Pigglitz. We offer a wide range of custom, personalized, and unique 3D printed gifts for kids and collectors."
-        keywords="Pigglitz, 3D printed toys, custom toys, 3d printing india, personalized gifts, kids toys, unique gifts"
+        title="Pigglitz Toys - Official Store | Custom 3D Printed Toys" 
+        description="Shop the official Pigglitz Toys store. Discover magical, colorful, and fun 3D printed toys at Pigglitz. We offer a wide range of custom toys for kids."
+        keywords="Pigglitz, Pigglitz toys, pigglitz store, 3D printed toys, custom toys, kids toys"
       />
       <Navbar />
 
@@ -202,7 +202,7 @@ const Home: React.FC = () => {
                   </div>
                   <div className="arrival-body">
                     <h4 className="arrival-name">{item.name}</h4>
-                    <p className="arrival-price">{item.price}</p>
+                    <p className="arrival-price">{item.price?.includes('₹') ? item.price : `₹${item.price}`}</p>
                     <button className="btn-playful btn-secondary arrival-btn" onClick={(e) => {
                       e.stopPropagation();
                       addToCart({
@@ -315,7 +315,7 @@ const Home: React.FC = () => {
                     <h3 className="featured-slide-title">{item.name}</h3>
                     <p className="featured-slide-desc">{item.desc || item.badge || ''}</p>
                     <div className="featured-slide-footer">
-                      <span className="featured-slide-price">{item.price}</span>
+                      <span className="featured-slide-price">{item.price?.includes('₹') ? item.price : `₹${item.price}`}</span>
                       <button
                         className="btn-playful btn-primary"
                         style={{ backgroundColor: 'var(--color-pink)', color: 'white' }}

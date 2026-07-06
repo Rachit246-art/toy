@@ -162,7 +162,7 @@ const BundlePage: React.FC = () => {
                       >
                         {p.name}
                       </h4>
-                      <p style={{ margin: '0 0 10px 0', fontWeight: 'bold', color: '#555' }}>{p.price}</p>
+                      <p style={{ margin: '0 0 10px 0', fontWeight: 'bold', color: '#555' }}>{p.price?.includes('₹') ? p.price : `₹${p.price}`}</p>
                       
                       {qty > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>

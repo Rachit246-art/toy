@@ -36,8 +36,23 @@ const CheckoutPage: React.FC = () => {
     name: user?.name || '', 
     email: user?.email || '', 
     phone: user?.phone || '', 
-    address: '', city: '', pincode: ''
+    address: '', 
+    city: '', 
+    pincode: ''
   });
+
+  const handleUseSavedAddress = () => {
+    if (user?.shippingAddress) {
+      setFormData({
+        name: user.shippingAddress.name || user.name || '',
+        email: user.shippingAddress.email || user.email || '',
+        phone: user.shippingAddress.phone || user.phone || '',
+        address: user.shippingAddress.addressLine1 || '',
+        city: user.shippingAddress.city || '',
+        pincode: user.shippingAddress.pincode || ''
+      });
+    }
+  };
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -150,8 +165,31 @@ const CheckoutPage: React.FC = () => {
         razorpayPaymentId: rzpPaymentId
       }, authHeader);
 
+      // Save address to user profile if logged in
+      if (token) {
+        try {
+          const shippingAddress = {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            addressLine1: formData.address,
+            city: formData.city,
+            pincode: formData.pincode,
+            country: 'India'
+          };
+          await axios.put(`${API_BASE}/api/users/profile`, { shippingAddress }, authHeader);
+          
+          if (user) {
+            user.shippingAddress = shippingAddress;
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+        } catch (e) {
+          console.error('Could not save address to profile', e);
+        }
+      }
+
       // Send email notification to admin via Web3Forms
-      const orderDetails = cartItems.map(item => `${item.quantity}x ${item.name} (₹${item.price})`).join('\n');
+      const orderDetails = cartItems.map(item => `${item.quantity}x ${item.name} (${item.price?.includes('₹') ? item.price : `₹${item.price}`})`).join('\n');
       
       await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
@@ -230,8 +268,21 @@ const CheckoutPage: React.FC = () => {
           <p className="checkout-subtitle">Please enter your shipping details below.</p>
           
           <form className="checkout-form" onSubmit={handlePlaceOrder}>
-            <div className="form-section">
-              <h3><Truck size={20}/> Delivery Information</h3>
+            <div className="form-section address-card-style">
+              <div className="address-section-header" style={{ marginBottom: '1.5rem', borderBottom: '1px solid #eaeaea', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#333' }}>
+                  <Truck size={20}/> Delivery Information
+                </h3>
+                {user?.shippingAddress?.addressLine1 && (
+                  <button 
+                    type="button" 
+                    onClick={handleUseSavedAddress}
+                    style={{ background: '#f0f0f0', border: '1px solid #ccc', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Use Saved Address
+                  </button>
+                )}
+              </div>
               
               <div className="input-row">
                 <div className="input-group">

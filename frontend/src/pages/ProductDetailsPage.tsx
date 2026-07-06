@@ -183,16 +183,24 @@ const ProductDetailsPage: React.FC = () => {
   const modelsList = product.models ? product.models.split(',').map(s => s.trim()).filter(Boolean) : [];
   const featuresList = product.features ? product.features.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
-  const productTitle = `${product.name} | Pigglitz 3D Toys`;
-  const productDesc = product.description || `Buy ${product.name} from Pigglitz. High-quality 3D printed toys.`;
-  const productKeywords = product.seoKeywords || `${product.name}, ${product.category || 'toys'}, 3D printed toy, kids gift, pigglitz`;
+  const productTitle = product.name.toLowerCase().includes('toy') 
+    ? `${product.name} | Pigglitz 3D Toys` 
+    : `${product.name} 3D Printed Toy | Pigglitz`;
+    
+  const productDesc = product.description 
+    ? `${product.description} A perfect 3D printed toy by Pigglitz.` 
+    : `Buy the ${product.name} toy from Pigglitz. High-quality, eco-friendly 3D printed toys for kids.`;
+    
+  const productKeywords = product.seoKeywords 
+    ? `${product.seoKeywords}, pigglitz toy, ${product.name} toy` 
+    : `${product.name} toy, pigglitz ${product.name}, 3D printed toy, kids toy, pigglitz toys`;
   
   const productSlug = product.name ? product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : product._id;
 
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "Product",
-    "name": product.name,
+    "name": product.name.toLowerCase().includes('toy') ? product.name : `${product.name} Toy`,
     "image": allImages.length > 0 ? allImages : ["https://pigglitz.com/logo.png"],
     "description": productDesc,
     "sku": product._id,
@@ -265,7 +273,7 @@ const ProductDetailsPage: React.FC = () => {
           <div className="product-info-panel">
             <h1 className="product-title text-purple">{product.name}</h1>
             <div className="product-price-section">
-              <span className="product-price">{product.price}</span>
+              <span className="product-price">{product.price?.includes('₹') ? product.price : `₹${product.price}`}</span>
               <span className="product-mrp-note">MRP is inclusive of all taxes.</span>
               {product.reviews && product.reviews.length > 0 && (
                 <div className="product-avg-rating" onClick={() => setOpenAccordion('reviews')} style={{ cursor: 'pointer' }}>

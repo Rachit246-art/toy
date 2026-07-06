@@ -112,7 +112,7 @@ const CartPage = () => {
                         </div>
                       </div>
                     )}
-                    <p className="cart-item-price text-pink" style={{ marginTop: '5px' }}>{item.price}</p>
+                    <p className="cart-item-price text-pink" style={{ marginTop: '5px' }}>{item.price?.includes('₹') ? item.price : `₹${item.price}`}</p>
                   </div>
                   <div className="cart-qty-controls">
                     <button className="qty-btn" onClick={() => updateQty(item._id, item.quantity - 1)}>

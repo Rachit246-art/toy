@@ -138,12 +138,26 @@ const VideoReelSchema = new mongoose.Schema({
 });
 const VideoReel = mongoose.model('VideoReel', VideoReelSchema);
 
+const AddressSchema = new mongoose.Schema({
+  name: { type: String, default: '' },
+  addressLine1: { type: String, default: '' },
+  addressLine2: { type: String, default: '' },
+  city: { type: String, default: '' },
+  state: { type: String, default: '' },
+  pincode: { type: String, default: '' },
+  country: { type: String, default: 'India' },
+  phone: { type: String, default: '' },
+  email: { type: String, default: '' }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, default: 'Pigglitz User' },
   phone: { type: String, default: '' },
-  role: { type: String, default: 'admin' }
+  role: { type: String, default: 'admin' },
+  billingAddress: { type: AddressSchema, default: () => ({}) },
+  shippingAddress: { type: AddressSchema, default: () => ({}) }
 });
 const User = mongoose.model('User', UserSchema);
 
@@ -184,6 +198,7 @@ const HeroSlideSchema = new mongoose.Schema({
 const HeroSlide = mongoose.model('HeroSlide', HeroSlideSchema);
 
 const OrderSchema = new mongoose.Schema({
+  orderId: { type: String, unique: true },
   customerInfo: {
     name: { type: String, required: true },
     email: { type: String, required: true },
@@ -211,11 +226,13 @@ const OrderSchema = new mongoose.Schema({
     }
   }],
   totalAmount: { type: Number, required: true },
-  status: { type: String, default: 'Pending', enum: ['Pending', 'Shipped', 'Delivered'] },
+  status: { type: String, default: 'Order Placed', enum: ['Pending', 'Shipped', 'Delivered', 'Order Placed', 'In Transit', 'Out for Delivery'] },
   paymentMethod: { type: String, default: 'COD' },
   paymentStatus: { type: String, default: 'Pending' },
   razorpayOrderId: { type: String },
   razorpayPaymentId: { type: String },
+  deliveryImageUrl: { type: String, default: '' },
+  trackingLink: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 const Order = mongoose.model('Order', OrderSchema);
@@ -224,6 +241,7 @@ const ChatbotLeadSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String, required: true },
+  requirement: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 const ChatbotLead = mongoose.model('ChatbotLead', ChatbotLeadSchema);
@@ -318,6 +336,79 @@ app.get('/api/users', authMiddleware, async (req, res) => {
   }
 });
 
+// 1c.1 Get Current User Profile
+app.get('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Auto-backfill if addresses are empty
+    let updated = false;
+    if (!user.shippingAddress || !user.shippingAddress.addressLine1 || !user.billingAddress || !user.billingAddress.addressLine1) {
+      const order = await Order.findOne({ 'customerInfo.email': user.email }).sort({ createdAt: -1 });
+      if (order && order.customerInfo) {
+        const addr = {
+          name: order.customerInfo.name,
+          email: order.customerInfo.email,
+          phone: order.customerInfo.phone,
+          addressLine1: order.customerInfo.address,
+          city: order.customerInfo.city,
+          pincode: order.customerInfo.pincode,
+          country: 'India'
+        };
+        if (!user.shippingAddress || !user.shippingAddress.addressLine1) {
+          user.shippingAddress = addr;
+          updated = true;
+        }
+        if (!user.billingAddress || !user.billingAddress.addressLine1) {
+          user.billingAddress = addr;
+          updated = true;
+        }
+        if (updated) {
+          const userToSave = await User.findById(req.user.id);
+          userToSave.shippingAddress = addr;
+          userToSave.billingAddress = addr;
+          await userToSave.save();
+          // Update the user object we are returning
+          user.shippingAddress = addr;
+          user.billingAddress = addr;
+        }
+      }
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 1c.2 Update Current User Profile
+app.put('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, phone, billingAddress, shippingAddress } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    
+    if (billingAddress !== undefined) {
+      user.billingAddress = { ...user.billingAddress.toObject(), ...billingAddress };
+    }
+    if (shippingAddress !== undefined) {
+      user.shippingAddress = { ...user.shippingAddress.toObject(), ...shippingAddress };
+    }
+
+    await user.save();
+    
+    // Return updated user data (without password)
+    const updatedUser = await User.findById(req.user.id).select('-password');
+    res.json({ message: 'Profile updated', user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // 1d. Seed admin user into DB (call once at startup automatically)
 const seedAdminUser = async () => {
   try {
@@ -350,7 +441,9 @@ const seedAdminUser = async () => {
 // 1e. Chatbot Leads Routes
 app.post('/api/chatbot-leads', async (req, res) => {
   try {
-    const newLead = new ChatbotLead(req.body);
+    const { name, email, phone, requirement } = req.body;
+    if (!name || !email || !phone) return res.status(400).json({ message: 'Missing fields' });
+    const newLead = new ChatbotLead({ name, email, phone, requirement });
     await newLead.save();
     res.status(201).json(newLead);
   } catch (err) {
@@ -573,9 +666,9 @@ app.post('/api/seed', async (req, res) => {
 // 7d. Chatbot Leads Routes
 app.post('/api/chatbot-leads', async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, email, phone, requirement } = req.body;
     if (!name || !email || !phone) return res.status(400).json({ message: 'Missing fields' });
-    const lead = new ChatbotLead({ name, email, phone });
+    const lead = new ChatbotLead({ name, email, phone, requirement });
     await lead.save();
     res.status(201).json(lead);
   } catch (err) {
@@ -673,7 +766,17 @@ app.post('/api/orders', async (req, res) => {
     if (!customerInfo || !items || items.length === 0) {
       return res.status(400).json({ message: 'Invalid order data' });
     }
+
+    let isUnique = false;
+    let orderId = '';
+    while (!isUnique) {
+      orderId = Math.floor(1000000 + Math.random() * 9000000).toString();
+      const existing = await Order.findOne({ orderId });
+      if (!existing) isUnique = true;
+    }
+
     const order = new Order({ 
+      orderId,
       customerInfo, 
       items, 
       totalAmount,
@@ -871,6 +974,42 @@ app.patch('/api/orders/:id/status', authMiddleware, async (req, res) => {
     );
     res.json(updated);
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 14b. Upload Delivery Image (Admin Only)
+app.patch('/api/orders/:id/delivery-image', authMiddleware, upload.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded' });
+    }
+    const updated = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: { deliveryImageUrl: req.file.path } },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    console.error('Upload delivery image error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 14c. Update Tracking Link (Admin Only)
+app.patch('/api/orders/:id/tracking-link', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { trackingLink } = req.body;
+    const updated = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: { trackingLink } },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    console.error('Update tracking link error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

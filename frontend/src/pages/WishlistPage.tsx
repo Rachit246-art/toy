@@ -52,7 +52,7 @@ const WishlistPage = () => {
                 </div>
                 <div className="wishlist-item-details">
                   <h3 className="text-purple">{item.name}</h3>
-                  <p className="wishlist-item-price text-pink">{item.price}</p>
+                  <p className="wishlist-item-price text-pink">{item.price?.includes('₹') ? item.price : `₹${item.price}`}</p>
                 </div>
                 <div className="wishlist-actions">
                   <button className="btn-playful btn-primary add-to-box-btn" onClick={() => {

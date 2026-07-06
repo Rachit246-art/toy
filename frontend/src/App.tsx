@@ -4,7 +4,17 @@ import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import AdminPanel from './pages/AdminPanel';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ToyManagement from './pages/admin/ToyManagement';
+import OrderManagement from './pages/admin/OrderManagement';
+import UserManagement from './pages/admin/UserManagement';
+import CouponManagement from './pages/admin/CouponManagement';
+import VideoReelsManagement from './pages/admin/VideoReelsManagement';
+import HeroBannersManagement from './pages/admin/HeroBannersManagement';
+import PartnerBannersManagement from './pages/admin/PartnerBannersManagement';
+import SiteSettingsManagement from './pages/admin/SiteSettingsManagement';
+import ChatbotLeads from './pages/admin/ChatbotLeads';
 import ShopPage from './pages/ShopPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -32,7 +42,18 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="toys" element={<ToyManagement />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="coupons" element={<CouponManagement />} />
+                <Route path="reels" element={<VideoReelsManagement />} />
+                <Route path="hero-banners" element={<HeroBannersManagement />} />
+                <Route path="partner-banners" element={<PartnerBannersManagement />} />
+                <Route path="site-settings" element={<SiteSettingsManagement />} />
+                <Route path="leads" element={<ChatbotLeads />} />
+              </Route>
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />

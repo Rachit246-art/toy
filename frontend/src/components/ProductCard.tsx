@@ -85,7 +85,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
       <div className="product-info">
         <h3 className="product-name text-purple" style={{ cursor: 'pointer' }} onClick={handleCardClick}>{name}</h3>
-        <p className="product-price text-pink">{price}</p>
+        <p className="product-price text-pink">{price?.includes('₹') ? price : `₹${price}`}</p>
         <button className="btn-playful btn-primary product-add-btn" onClick={onAddToCart}>
           <ShoppingBag size={18} style={{ marginRight: '0.5rem' }} /> Add to Box
         </button>
