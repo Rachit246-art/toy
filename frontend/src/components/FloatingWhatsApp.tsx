@@ -2,7 +2,7 @@ import React from 'react';
 import './FloatingWhatsApp.css';
 
 const FloatingWhatsApp: React.FC = () => {
-  const phoneNumber = "1234567890"; // Replace with actual number
+  const phoneNumber = "8299475268";
   const message = "Hello! I'm interested in your products.";
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;

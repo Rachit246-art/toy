@@ -180,7 +180,10 @@ const SiteSettingsSchema = new mongoose.Schema({
   partnerBannerLeftImage: { type: String, default: "" },
   partnerBannerLeftLink: { type: String, default: "" },
   partnerBannerRightImage: { type: String, default: "" },
-  partnerBannerRightLink: { type: String, default: "" }
+  partnerBannerRightLink: { type: String, default: "" },
+  amazonStoreLink: { type: String, default: "https://www.amazon.in/l/27943762031?me=AX3F3SGHVD4DN&ref_=ssf_share" },
+  flipkartStoreLink: { type: String, default: "https://www.flipkart.com" },
+  indiamartStoreLink: { type: String, default: "https://www.indiamart.com/pinakatechnologiessg/" }
 });
 const SiteSettings = mongoose.model('SiteSettings', SiteSettingsSchema);
 
@@ -245,6 +248,15 @@ const ChatbotLeadSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const ChatbotLead = mongoose.model('ChatbotLead', ChatbotLeadSchema);
+
+const BlogSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+  content: { type: String, required: true },
+  imageUrl: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+});
+const Blog = mongoose.model('Blog', BlogSchema);
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
@@ -759,6 +771,93 @@ app.put('/api/reels/:id', authMiddleware, uploadReel.fields([
   }
 });
 
+// 12. Blog Routes
+
+// Get all blogs (Public)
+app.get('/api/blogs', async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 });
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get single blog (Public)
+app.get('/api/blogs/:id', async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+    res.json(blog);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Create Blog (Admin Only)
+app.post('/api/blogs', authMiddleware, upload.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { title, subtitle, content } = req.body;
+    const imageUrl = req.file ? req.file.path : '';
+    
+    const newBlog = new Blog({
+      title,
+      subtitle: subtitle || '',
+      content,
+      imageUrl
+    });
+    const saved = await newBlog.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error('Create blog error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update Blog (Admin Only)
+app.put('/api/blogs/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { title, subtitle, content } = req.body;
+    const updates = { title, subtitle: subtitle || '', content };
+    if (req.file) updates.imageUrl = req.file.path;
+    
+    const updated = await Blog.findByIdAndUpdate(
+      req.params.id, { $set: updates }, { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    console.error('Update blog error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete Blog (Admin Only)
+app.delete('/api/blogs/:id', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    await Blog.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Blog removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 13. General Image Upload (Admin Only)
+app.post('/api/upload', authMiddleware, upload.single('image'), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No image provided' });
+    res.json({ imageUrl: req.file.path });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
 // 12. Create Order (Public)
 app.post('/api/orders', async (req, res) => {
   try {
@@ -1094,6 +1193,45 @@ app.get('/api/settings/partner-banners', async (req, res) => {
       leftLink: settings.partnerBannerLeftLink,
       rightImage: settings.partnerBannerRightImage,
       rightLink: settings.partnerBannerRightLink
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 18b-1. Get Online Store Links (Public)
+app.get('/api/settings/online-stores', async (req, res) => {
+  try {
+    let settings = await SiteSettings.findOne();
+    if (!settings) settings = await SiteSettings.create({});
+    res.json({
+      amazonStoreLink: settings.amazonStoreLink,
+      flipkartStoreLink: settings.flipkartStoreLink,
+      indiamartStoreLink: settings.indiamartStoreLink
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 18b-2. Update Online Store Links (Admin Only)
+app.put('/api/settings/online-stores', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+  try {
+    const { amazonStoreLink, flipkartStoreLink, indiamartStoreLink } = req.body;
+    let settings = await SiteSettings.findOne();
+    if (!settings) {
+      settings = await SiteSettings.create({ amazonStoreLink, flipkartStoreLink, indiamartStoreLink });
+    } else {
+      if (amazonStoreLink !== undefined) settings.amazonStoreLink = amazonStoreLink;
+      if (flipkartStoreLink !== undefined) settings.flipkartStoreLink = flipkartStoreLink;
+      if (indiamartStoreLink !== undefined) settings.indiamartStoreLink = indiamartStoreLink;
+      await settings.save();
+    }
+    res.json({
+      amazonStoreLink: settings.amazonStoreLink,
+      flipkartStoreLink: settings.flipkartStoreLink,
+      indiamartStoreLink: settings.indiamartStoreLink
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

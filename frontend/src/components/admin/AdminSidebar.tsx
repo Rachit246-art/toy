@@ -11,13 +11,15 @@ import {
   MessageSquare, 
   Ticket, 
   ShoppingCart,
-  LogOut
+  LogOut,
+  BookOpen
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
@@ -32,6 +34,7 @@ const AdminSidebar: React.FC = () => {
     { to: '/admin/partner-banners', icon: <ImageIcon size={18} />, label: 'Partner Banners' },
     { to: '/admin/site-settings', icon: <Settings size={18} />, label: 'Site Settings' },
     { to: '/admin/leads', icon: <MessageSquare size={18} />, label: 'Chatbot Leads' },
+    { to: '/admin/blogs', icon: <BookOpen size={18} />, label: 'Blogs' },
   ];
 
   return (

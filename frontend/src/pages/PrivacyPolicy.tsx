@@ -55,7 +55,7 @@ const PrivacyPolicy: React.FC = () => {
           <p>We reserve the right to update this Privacy Policy at any time.</p>
 
           <h3>Contact:</h3>
-          <p><a href="mailto:support@pigglitz.com" className="text-blue">support@pigglitz.com</a></p>
+          <p><a href="mailto:pigglits3d@gmail.com" className="text-blue">pigglits3d@gmail.com</a></p>
         </div>
       </div>
       

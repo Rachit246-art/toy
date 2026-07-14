@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Film, Ticket, Save } from 'lucide-react';
+import { Film, Ticket, Save, ShoppingCart } from 'lucide-react';
 import API_BASE from '../../config';
 
 function extractId(url: string): string {
@@ -24,6 +24,11 @@ const SiteSettingsManagement: React.FC = () => {
   const [announcementText2, setAnnouncementText2] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
 
+  const [amazonStoreLink, setAmazonStoreLink] = useState('');
+  const [flipkartStoreLink, setFlipkartStoreLink] = useState('');
+  const [indiamartStoreLink, setIndiamartStoreLink] = useState('');
+  const [onlineStoresMsg, setOnlineStoresMsg] = useState('');
+
   const token = () => localStorage.getItem('token');
   const authHeader = () => ({ headers: { Authorization: `Bearer ${token()}` } });
 
@@ -40,9 +45,19 @@ const SiteSettingsManagement: React.FC = () => {
     } catch (e) { console.error(e); }
   };
 
+  const fetchOnlineStores = async () => {
+    try { 
+      const r = await axios.get(`${API_BASE}/api/settings/online-stores`); 
+      setAmazonStoreLink(r.data.amazonStoreLink || '');
+      setFlipkartStoreLink(r.data.flipkartStoreLink || '');
+      setIndiamartStoreLink(r.data.indiamartStoreLink || '');
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     fetchShowcaseVideo();
     fetchAnnouncements();
+    fetchOnlineStores();
   }, []);
 
   const handleSaveShowcaseVideo = async (e: React.FormEvent) => {
@@ -64,6 +79,17 @@ const SiteSettingsManagement: React.FC = () => {
       );
       setAnnouncementMsg('✅ Announcements updated!');
     } catch { setAnnouncementMsg('❌ Failed to update announcements.'); }
+  };
+
+  const handleSaveOnlineStores = async (e: React.FormEvent) => {
+    e.preventDefault(); setOnlineStoresMsg('');
+    try {
+      await axios.put(`${API_BASE}/api/settings/online-stores`, 
+        { amazonStoreLink, flipkartStoreLink, indiamartStoreLink },
+        authHeader()
+      );
+      setOnlineStoresMsg('✅ Online store links updated!');
+    } catch { setOnlineStoresMsg('❌ Failed to update online store links.'); }
   };
 
   return (
@@ -104,6 +130,30 @@ const SiteSettingsManagement: React.FC = () => {
               <Save size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Save Announcements
             </button>
             {announcementMsg && <p className="reel-msg">{announcementMsg}</p>}
+          </form>
+        </div>
+
+        <div className="admin-form-container reel-form-container">
+          <h3 className="text-pink" style={{marginBottom:'1.2rem',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+            <ShoppingCart size={18}/> Online Store Links
+          </h3>
+          <form onSubmit={handleSaveOnlineStores} className="admin-form">
+            <label className="field-label">Amazon Store Link</label>
+            <input type="url" placeholder="https://amazon.in/..."
+              value={amazonStoreLink} onChange={e => setAmazonStoreLink(e.target.value)} className="playful-input" />
+              
+            <label className="field-label">Flipkart Store Link</label>
+            <input type="url" placeholder="https://flipkart.com/..."
+              value={flipkartStoreLink} onChange={e => setFlipkartStoreLink(e.target.value)} className="playful-input" />
+
+            <label className="field-label">IndiaMART Store Link</label>
+            <input type="url" placeholder="https://indiamart.com/..."
+              value={indiamartStoreLink} onChange={e => setIndiamartStoreLink(e.target.value)} className="playful-input" />
+              
+            <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '0.5rem' }}>
+              <Save size={16} style={{marginRight:'0.4rem',verticalAlign:'middle'}}/> Save Store Links
+            </button>
+            {onlineStoresMsg && <p className="reel-msg">{onlineStoresMsg}</p>}
           </form>
         </div>
       </div>

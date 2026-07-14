@@ -470,7 +470,7 @@ const Home: React.FC = () => {
               { icon: '🏭', title: 'Made in Kanpur',        color: '#FFDAC1', desc: 'Proudly designed, printed & shipped from our workshop in Naubasta, Kanpur — straight to your door.' },
               { icon: '⚡', title: '48-Hour Dispatch',      color: '#FFD6E8', desc: 'We aim to ship every order within 48 hours so your little one doesn\'t have to wait long!' },
               { icon: '🛡️', title: 'Durable & Tested',     color: '#C8B6FF', desc: 'Engineered for strength and built to last. Suitable for children aged 3 and above.' },
-              { icon: '💜', title: 'With Love from Pinaka', color: '#E2F0CB', desc: 'Pigglitz is a Pinaka Technologies brand — our "PI" logo and passion for making smiles is at our core.' },
+              { icon: '💜', title: 'With Love from PINAKA TECHNOLOGIES S G PVT LTD', color: '#E2F0CB', desc: 'Pigglitz is a PINAKA TECHNOLOGIES S G PVT LTD brand — our "PI" logo and passion for making smiles is at our core.' },
             ].map(item => (
               <div key={item.title} className="why-card">
                 <div className="why-icon-box" style={{ backgroundColor: item.color }}>{item.icon}</div>
@@ -503,7 +503,7 @@ const Home: React.FC = () => {
               { q: 'Do you accept bulk orders?', a: 'Yes. We offer special pricing for birthday return gifts, schools, events, and corporate gifting.' },
               { q: 'Can I customize products?', a: 'Certain products may be customized depending on quantity and design requirements.' },
               { q: 'Are the products made in India?', a: 'Yes. All products are proudly designed and manufactured in India.' },
-              { q: 'How can I contact support?', a: 'You can reach us through the Contact Us page or email support@pigglitz.com.' },
+              { q: 'How can I contact support?', a: 'You can reach us through the Contact Us page or email pigglits3d@gmail.com.' },
             ].map((item, i) => (
               <FaqItem key={i} question={item.q} answer={item.a} />
             ))}

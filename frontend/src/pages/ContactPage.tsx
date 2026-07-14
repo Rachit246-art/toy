@@ -52,12 +52,12 @@ const ContactPage = () => {
           <div className="info-card">
             <div className="info-icon">📍</div>
             <h3>Our Location</h3>
-            <p>PINAKA TECHNOLOGIES<br />India</p>
+            <p>PINAKA TECHNOLOGIES S G PVT LTD<br />India</p>
           </div>
           <div className="info-card">
             <div className="info-icon">✉️</div>
             <h3>Email Us</h3>
-            <p>connect2rachit882@gmail.com</p>
+            <p>pigglits3d@gmail.com</p>
           </div>
           <div className="info-card">
             <div className="info-icon">⏰</div>

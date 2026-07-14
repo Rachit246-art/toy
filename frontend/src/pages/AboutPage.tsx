@@ -25,7 +25,7 @@ const AboutPage = () => {
         <div className="about-card card-purple" style={{ width: '100%', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
           <div className="about-icon">🎁</div>
           <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-            Pigglitz 3D Printing Pitara is a creative toy brand by <strong>Pinaka Technologies SG Private Limited</strong>, dedicated to bringing imagination to life through innovative 3D printing technology.
+            Pigglitz 3D Printing Pitara is a creative toy brand by <strong>PINAKA TECHNOLOGIES S G PVT LTD</strong>, dedicated to bringing imagination to life through innovative 3D printing technology.
           </p>
           <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
             We design and manufacture unique articulated toys, flexible animals, fidget toys, collectibles, and educational products that inspire creativity and fun for children and adults alike.
@@ -63,7 +63,7 @@ const AboutPage = () => {
       <section className="about-team container" style={{ paddingBottom: '4rem' }}>
         <h2 className="text-purple text-center">Company:</h2>
         <p className="text-center" style={{ marginTop: '0.5rem', color: '#666', fontSize: '1.2rem', fontWeight: 'bold' }}>
-          Pinaka Technologies SG Private Limited
+          PINAKA TECHNOLOGIES S G PVT LTD
         </p>
         <p className="text-center" style={{ marginTop: '1.5rem', fontSize: '1.1rem' }}>
           <strong>Website:</strong><br/>

@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
             </div>
             <p className="footer-tagline">Little Prints. Big Smiles. 🎉</p>
             <p className="footer-desc">
-              Handcrafted 3D printed toys made with love by the artisan team at PINAKA TECHNOLOGIES.
+              Handcrafted 3D printed toys made with love by the artisan team at PINAKA TECHNOLOGIES S G PVT LTD.
             </p>
           </div>
 
@@ -51,8 +51,8 @@ const Footer: React.FC = () => {
           <div className="footer-col">
             <h4 className="footer-heading text-pink">Get in Touch</h4>
             <ul className="footer-links">
-              <li>📍 PINAKA TECHNOLOGIES, India</li>
-              <li>✉️ connect2rachit882@gmail.com</li>
+              <li>📍 PINAKA TECHNOLOGIES S G PVT LTD, India</li>
+              <li>✉️ pigglits3d@gmail.com</li>
               <li>⏰ Reply within 24 hours</li>
             </ul>
           </div>
@@ -73,13 +73,9 @@ const Footer: React.FC = () => {
         {/* Bottom bar */}
         <div className="footer-bottom">
           <div className="footer-bottom-inner">
-            <p>© 2026 <strong>PINAKA TECHNOLOGIES</strong>. All rights reserved.</p>
-            <div className="footer-emojis">
-              <span>🧸</span>
-              <span>🌟</span>
-              <span>🎨</span>
-              <span>🚀</span>
-              <span>🎉</span>
+            <p>© 2026 <strong>PINAKA TECHNOLOGIES S G PVT LTD</strong>. All rights reserved.</p>
+            <div className="developer-credit">
+              Pigglitz | Made with ❤️ by <a href="https://www.linkedin.com/in/rachit-sharma-530316339/" target="_blank" rel="noopener noreferrer"><span>Rachit</span></a>
             </div>
           </div>
         </div>

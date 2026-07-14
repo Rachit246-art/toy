@@ -25,7 +25,8 @@ const Login: React.FC = () => {
   // If already logged in
   useEffect(() => {
     const userStr = localStorage.getItem('user');
-    if (userStr) {
+    const token = localStorage.getItem('token');
+    if (userStr && token) {
       try {
         const user = JSON.parse(userStr);
         if (user.role === 'admin') navigate('/admin', { replace: true });
@@ -33,6 +34,9 @@ const Login: React.FC = () => {
       } catch (e) {
         // Handle parse error
       }
+    } else if (userStr && !token) {
+      // Clean up orphaned user data
+      localStorage.removeItem('user');
     }
   }, [navigate]);
 

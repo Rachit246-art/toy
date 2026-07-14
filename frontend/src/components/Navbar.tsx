@@ -87,6 +87,7 @@ const Navbar: React.FC = () => {
           <button className="nav-link-btn text-orange" onClick={() => goTo('/shop?category=Collectible')}>Collectible</button>
           <button className="nav-link-btn text-blue" onClick={() => goTo('/shop?category=Home Decor')}>Home Decor</button>
           <button className="nav-link-btn text-blue" onClick={() => goTo('/about')}>About Us</button>
+          <button className="nav-link-btn text-purple" onClick={() => goTo('/blog')}>Blog</button>
           <button className="nav-link-btn text-orange" onClick={() => goTo('/contact')}>Contact</button>
         </div>
 
@@ -149,6 +150,7 @@ const Navbar: React.FC = () => {
           <button className="mobile-nav-link text-orange" onClick={() => goTo('/shop?category=Collectible')}>💎 Collectible</button>
           <button className="mobile-nav-link text-blue" onClick={() => goTo('/shop?category=Home Decor')}>🏠 Home Decor</button>
           <button className="mobile-nav-link text-blue" onClick={() => goTo('/about')}>🌈 About Us</button>
+          <button className="mobile-nav-link text-purple" onClick={() => goTo('/blog')}>📖 Blog</button>
           <button className="mobile-nav-link text-orange" onClick={() => goTo('/contact')}>💌 Contact</button>
           <button className="mobile-nav-link text-red" onClick={() => goTo('/wishlist')}>❤️ My Wishlist ({wishlistCount})</button>
           <button className="mobile-nav-link text-pink" onClick={() => goTo('/cart')}>🛒 My Cart ({cartCount})</button>

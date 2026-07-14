@@ -73,7 +73,7 @@ function cardStyle(offset: number): React.CSSProperties {
   };
 }
 
-const HANDLE = '@pigglitz';
+const HANDLE = '@pigglitz3d';
 
 const VideoReelSection: React.FC = () => {
   const [reels, setReels]         = useState<Reel[]>([]);

@@ -200,7 +200,7 @@ const CheckoutPage: React.FC = () => {
         body: JSON.stringify({
           access_key: '8aa80828-cad0-4815-bc89-2026e2eaa6db',
           subject: `New Order Placed by ${formData.name}`,
-          from_name: 'Pinaka Toys',
+          from_name: 'PINAKA TECHNOLOGIES S G PVT LTD',
           name: formData.name,
           email: formData.email,
           message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city}, ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: ${method}`

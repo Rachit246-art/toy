@@ -170,13 +170,16 @@
   font-size: 1.2rem;
 }
 
-.footer-emojis span {
+.footer-emojis img {
   display: inline-block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
   transition: transform 0.2s ease;
   cursor: default;
 }
 
-.footer-emojis span:hover {
+.footer-emojis img:hover {
   transform: scale(1.4) rotate(-8deg);
 }
 
@@ -186,3 +189,38 @@
 .text-blue   { color: var(--color-blue); }
 .text-orange { color: var(--color-orange); }
 .text-yellow { color: var(--color-yellow); }
+
+/* ─── Developer Credit ─── */
+.developer-credit {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  color: #999;
+  display: inline-block;
+  padding: 0.3rem 0;
+  transition: all 0.3s ease;
+}
+
+.developer-credit:hover {
+  transform: translateY(-1px);
+  color: #666;
+}
+
+.developer-credit span {
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse-glow-light 2s infinite ease-in-out;
+}
+
+.developer-credit a {
+  text-decoration: none;
+}
+
+@keyframes pulse-glow-light {
+  0%, 100% { filter: drop-shadow(0 0 1px rgba(255,0,110,0.1)); }
+  50% { filter: drop-shadow(0 0 3px rgba(138,43,226,0.3)); }
+}

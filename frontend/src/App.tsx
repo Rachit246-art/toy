@@ -15,6 +15,7 @@ import HeroBannersManagement from './pages/admin/HeroBannersManagement';
 import PartnerBannersManagement from './pages/admin/PartnerBannersManagement';
 import SiteSettingsManagement from './pages/admin/SiteSettingsManagement';
 import ChatbotLeads from './pages/admin/ChatbotLeads';
+import BlogManagement from './pages/admin/BlogManagement';
 import ShopPage from './pages/ShopPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -25,6 +26,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import UserDashboard from './pages/UserDashboard';
 import BundlePage from './pages/BundlePage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import CursorSprinkles from './components/CursorSprinkles';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import GlobalChatbot from './components/GlobalChatbot';
@@ -53,6 +56,7 @@ function App() {
                 <Route path="partner-banners" element={<PartnerBannersManagement />} />
                 <Route path="site-settings" element={<SiteSettingsManagement />} />
                 <Route path="leads" element={<ChatbotLeads />} />
+                <Route path="blogs" element={<BlogManagement />} />
               </Route>
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/about" element={<AboutPage />} />
@@ -64,6 +68,8 @@ function App() {
               <Route path="/profile" element={<UserDashboard />} />
               <Route path="/bundle" element={<BundlePage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:id" element={<BlogPostPage />} />
             </Routes>
           </div>
         </Router>

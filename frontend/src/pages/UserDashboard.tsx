@@ -10,7 +10,7 @@ import './UserDashboard.css';
 interface Order {
   _id: string;
   customerInfo: { name: string; email: string; phone: string; address: string; city: string; pincode: string };
-  items: { _id: string; name: string; price: string; quantity: number; imageUrl: string }[];
+  items: { _id: string; name: string; price: string; quantity: number; imageUrl: string; isBundle?: boolean }[];
   totalAmount: number;
   status: string;
   createdAt: string;
@@ -91,6 +91,12 @@ const UserDashboard: React.FC = () => {
 
   // State for order details modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Review State
+  const [reviewItem, setReviewItem] = useState<{productId: string, productName: string} | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
@@ -185,6 +191,27 @@ const UserDashboard: React.FC = () => {
       alert('Failed to update shipping address.');
     } finally {
       setSavingAddress(false);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewItem || !userData) return;
+    setSubmittingReview(true);
+    try {
+      await axios.post(`${API_BASE}/api/products/${reviewItem.productId}/reviews`, {
+        name: userData.name,
+        rating,
+        comment
+      });
+      alert('Review submitted successfully! Thank you.');
+      setReviewItem(null);
+      setRating(5);
+      setComment('');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -406,7 +433,7 @@ const UserDashboard: React.FC = () => {
                             <td style={{ fontWeight: '500' }}>
                               ₹{o.totalAmount.toLocaleString()} for {totalItems} items
                             </td>
-                            <td style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
+                            <td style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
                               <button 
                                 className="action-btn-eye" 
                                 onClick={() => setSelectedOrder(o)}
@@ -414,6 +441,23 @@ const UserDashboard: React.FC = () => {
                               >
                                 <Eye size={18} />
                               </button>
+                              
+                              {isCompleted && (
+                                <button
+                                  className="btn-playful btn-primary"
+                                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                  onClick={() => {
+                                    if (o.items.length === 1 && !o.items[0].isBundle) {
+                                      setReviewItem({ productId: o.items[0]._id, productName: o.items[0].name });
+                                    } else {
+                                      setSelectedOrder(o);
+                                    }
+                                  }}
+                                >
+                                  Review
+                                </button>
+                              )}
+
                               {o.trackingLink ? (
                                 <a 
                                   href={o.trackingLink.startsWith('http') ? o.trackingLink : `https://${o.trackingLink}`} 
@@ -424,7 +468,7 @@ const UserDashboard: React.FC = () => {
                                 >
                                   Track
                                 </a>
-                              ) : (
+                              ) : !isCompleted ? (
                                 <button
                                   className="btn-playful btn-primary"
                                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', opacity: 0.5, cursor: 'not-allowed' }}
@@ -433,7 +477,7 @@ const UserDashboard: React.FC = () => {
                                 >
                                   Track
                                 </button>
-                              )}
+                              ) : null}
                             </td>
                           </tr>
                         );
@@ -458,7 +502,18 @@ const UserDashboard: React.FC = () => {
                     <strong>Items Ordered:</strong>
                     <ul>
                       {selectedOrder.items.map(item => (
-                        <li key={item._id}>{item.quantity}x {item.name}</li>
+                        <li key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span>{item.quantity}x {item.name}</span>
+                          {selectedOrder.status === 'Delivered' && !item.isBundle && (
+                            <button 
+                              className="btn-playful btn-primary"
+                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                              onClick={() => setReviewItem({ productId: item._id, productName: item.name })}
+                            >
+                              Write a Review
+                            </button>
+                          )}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -531,17 +586,16 @@ const UserDashboard: React.FC = () => {
                                         <body>
                                           <div class="header">
                                             <div>
-                                              <h1 class="invoice-title">INVOICE</h1>
                                               <p>Order #${o.orderId || o._id.slice(-6).toUpperCase()}<br/>Date: ${new Date(o.createdAt).toLocaleDateString()}</p>
                                             </div>
                                             <div style="text-align: right;">
                                               <h2>Pigglitz 3D Printing</h2>
-                                              <p>support@pigglitz.com</p>
+                                              <p>pigglits3d@gmail.com</p>
                                             </div>
                                           </div>
                                           
                                           <div class="bill-to">
-                                            <h3>Bill To:</h3>
+                                            <h3>Order To:</h3>
                                             <p>${o.customerInfo.name}<br/>${o.customerInfo.address}<br/>${o.customerInfo.city}, ${o.customerInfo.pincode}<br/>${o.customerInfo.phone}<br/>${o.customerInfo.email}</p>
                                           </div>
 
@@ -572,10 +626,6 @@ const UserDashboard: React.FC = () => {
                                             <p>Thank you for shopping with Pigglitz!</p>
                                             <p>This is a computer-generated invoice and does not require a physical signature.</p>
                                           </div>
-                                          
-                                          <script>
-                                            window.onload = function() { window.print(); }
-                                          </script>
                                         </body>
                                       </html>
                                     `);
@@ -612,6 +662,48 @@ const UserDashboard: React.FC = () => {
 
         </div>
       </div>
+
+      {/* REVIEW MODAL */}
+      {reviewItem && (
+        <div className="order-modal-overlay" onClick={() => setReviewItem(null)}>
+          <div className="order-modal-content address-modal" onClick={e => e.stopPropagation()}>
+            <div className="order-modal-header">
+              <h3>Review {reviewItem.productName}</h3>
+              <button className="close-btn" onClick={() => setReviewItem(null)}><X size={24}/></button>
+            </div>
+            <form onSubmit={handleSubmitReview} className="order-modal-body">
+              <div className="form-group">
+                <label>Rating (1-5)</label>
+                <select 
+                  value={rating} 
+                  onChange={e => setRating(Number(e.target.value))}
+                  style={{ padding: '0.8rem', borderRadius: '12px', border: '2px solid #ddd', width: '100%', fontFamily: 'var(--font-body)' }}
+                >
+                  <option value={5}>5 - Excellent</option>
+                  <option value={4}>4 - Very Good</option>
+                  <option value={3}>3 - Average</option>
+                  <option value={2}>2 - Poor</option>
+                  <option value={1}>1 - Terrible</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Your Review</label>
+                <textarea 
+                  required 
+                  value={comment} 
+                  onChange={e => setComment(e.target.value)} 
+                  rows={4}
+                  placeholder="Tell us what you liked (or didn't like)..."
+                  style={{ padding: '0.8rem', borderRadius: '12px', border: '2px solid #ddd', width: '100%', resize: 'vertical', fontFamily: 'var(--font-body)' }}
+                />
+              </div>
+              <button type="submit" className="btn-playful btn-primary" disabled={submittingReview}>
+                {submittingReview ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* BILLING ADDRESS MODAL */}
       {editingBilling && (
