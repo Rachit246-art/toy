@@ -103,21 +103,6 @@ const UserDashboard: React.FC = () => {
   const token = localStorage.getItem('token');
   const { addToCart } = useCart();
 
-  const handleReorder = (order: Order) => {
-    order.items.forEach(item => {
-      addToCart({
-        _id: item._id,
-        name: item.name,
-        price: item.price,
-        imageColor: '#f5f5f5',
-        emoji: '🧸',
-        imageUrl: item.imageUrl,
-        isBundle: item.isBundle,
-      });
-    });
-    navigate('/cart');
-  };
-
   const handleReorderItem = (item: any) => {
     addToCart({
       _id: item._id,
