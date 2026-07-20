@@ -61,6 +61,7 @@ const ToyManagement: React.FC = () => {
   const editFileRef = useRef<HTMLInputElement>(null);
 
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [filterCategory, setFilterCategory] = useState<string>('All');
 
   const token = () => localStorage.getItem('token');
   const authHeader = () => ({ headers: { Authorization: `Bearer ${token()}` } });
@@ -164,6 +165,8 @@ const ToyManagement: React.FC = () => {
     XLSX.writeFile(workbook, 'products_list.xlsx');
   };
 
+  const filteredProducts = products.filter(p => filterCategory === 'All' || (p.category || 'Toys') === filterCategory);
+
   return (
     <div className="admin-page container">
       <div className="admin-section-title" style={{ marginTop: 0 }}><span>🧸</span> Toy Management</div>
@@ -256,14 +259,28 @@ const ToyManagement: React.FC = () => {
 
         {/* Product list */}
         <div className="admin-list-container toy-management-list">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 className="text-blue" style={{ fontSize: '1.4rem', margin: 0 }}>Products Management ({products.length} items)</h2>
-            <button onClick={exportToExcel} className="btn-playful btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
-              <Download size={16} /> Export to Excel
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 className="text-blue" style={{ fontSize: '1.4rem', margin: 0 }}>Products Management ({filteredProducts.length} items)</h2>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <select 
+                value={filterCategory} 
+                onChange={e => setFilterCategory(e.target.value)}
+                className="playful-input"
+                style={{ padding: '0.4rem', margin: 0, minWidth: '150px' }}
+              >
+                <option value="All">All Categories</option>
+                <option value="Toys">Toys</option>
+                <option value="DIY Paint Kit">DIY Paint Kit</option>
+                <option value="Home Decor">Home Decor</option>
+                <option value="Collectible">Collectible</option>
+              </select>
+              <button onClick={exportToExcel} className="btn-playful btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+                <Download size={16} /> Export to Excel
+              </button>
+            </div>
           </div>
           <div className="admin-product-list">
-            {products.map(p => (
+            {filteredProducts.map(p => (
               <div key={p._id} className="admin-product-item-card">
                 <div className="admin-card-image-wrapper">
                   <div className="admin-card-actions-top">
@@ -312,7 +329,7 @@ const ToyManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {products.length===0 && <p style={{color:'#888'}}>No toys yet. Add your first one!</p>}
+            {filteredProducts.length===0 && <p style={{color:'#888'}}>No toys found. Add your first one!</p>}
           </div>
         </div>
       </div>

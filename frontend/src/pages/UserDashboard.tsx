@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, X } from 'lucide-react';
+import { Eye, X, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../config';
+import { useCart } from '../context/CartContext';
 import './UserDashboard.css';
 
 interface Order {
@@ -100,6 +101,35 @@ const UserDashboard: React.FC = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const { addToCart } = useCart();
+
+  const handleReorder = (order: Order) => {
+    order.items.forEach(item => {
+      addToCart({
+        _id: item._id,
+        name: item.name,
+        price: item.price,
+        imageColor: '#f5f5f5',
+        emoji: '🧸',
+        imageUrl: item.imageUrl,
+        isBundle: item.isBundle,
+      });
+    });
+    navigate('/cart');
+  };
+
+  const handleReorderItem = (item: any) => {
+    addToCart({
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      imageColor: '#f5f5f5',
+      emoji: '🧸',
+      imageUrl: item.imageUrl,
+      isBundle: item.isBundle,
+    });
+    navigate('/cart');
+  };
 
   useEffect(() => {
     if (!token) {
@@ -433,51 +463,53 @@ const UserDashboard: React.FC = () => {
                             <td style={{ fontWeight: '500' }}>
                               ₹{o.totalAmount.toLocaleString()} for {totalItems} items
                             </td>
-                            <td style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-                              <button 
-                                className="action-btn-eye" 
-                                onClick={() => setSelectedOrder(o)}
-                                title="View Order"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              
-                              {isCompleted && (
-                                <button
-                                  className="btn-playful btn-primary"
-                                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                  onClick={() => {
-                                    if (o.items.length === 1 && !o.items[0].isBundle) {
-                                      setReviewItem({ productId: o.items[0]._id, productName: o.items[0].name });
-                                    } else {
-                                      setSelectedOrder(o);
-                                    }
-                                  }}
+                            <td style={{ minWidth: '220px' }}>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <button 
+                                  className="action-btn-eye" 
+                                  onClick={() => setSelectedOrder(o)}
+                                  title="View Order"
                                 >
-                                  Review
+                                  <Eye size={18} />
                                 </button>
-                              )}
+                                
+                                {isCompleted && (
+                                  <button
+                                    className="btn-playful btn-primary"
+                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                    onClick={() => {
+                                      if (o.items.length === 1 && !o.items[0].isBundle) {
+                                        setReviewItem({ productId: o.items[0]._id, productName: o.items[0].name });
+                                      } else {
+                                        setSelectedOrder(o);
+                                      }
+                                    }}
+                                  >
+                                    Review
+                                  </button>
+                                )}
 
-                              {o.trackingLink ? (
-                                <a 
-                                  href={o.trackingLink.startsWith('http') ? o.trackingLink : `https://${o.trackingLink}`} 
-                                  target="_blank" 
-                                  rel="noreferrer"
-                                  className="btn-playful btn-primary"
-                                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-block', textDecoration: 'none' }}
-                                >
-                                  Track
-                                </a>
-                              ) : !isCompleted ? (
-                                <button
-                                  className="btn-playful btn-primary"
-                                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', opacity: 0.5, cursor: 'not-allowed' }}
-                                  disabled
-                                  title="Tracking link not added yet"
-                                >
-                                  Track
-                                </button>
-                              ) : null}
+                                {o.trackingLink ? (
+                                  <a 
+                                    href={o.trackingLink.startsWith('http') ? o.trackingLink : `https://${o.trackingLink}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="btn-playful btn-primary"
+                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-block', textDecoration: 'none' }}
+                                  >
+                                    Track
+                                  </a>
+                                ) : !isCompleted ? (
+                                  <button
+                                    className="btn-playful btn-primary"
+                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', opacity: 0.5, cursor: 'not-allowed' }}
+                                    disabled
+                                    title="Tracking link not added yet"
+                                  >
+                                    Track
+                                  </button>
+                                ) : null}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -497,27 +529,79 @@ const UserDashboard: React.FC = () => {
                   <h3>Order #{selectedOrder.orderId || selectedOrder._id.slice(-6).toUpperCase()}</h3>
                   <button className="close-btn" onClick={() => setSelectedOrder(null)}><X size={24}/></button>
                 </div>
-                <div className="order-modal-body">
-                  <div className="order-items">
-                    <strong>Items Ordered:</strong>
-                    <ul>
+                <div className="order-modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '20px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f5f0ff', borderRadius: '12px', border: '1px solid #e2d2ff' }}>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#666' }}>Order Date</p>
+                      <p style={{ margin: 0, fontWeight: '600' }}>{new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#666' }}>Order Status</p>
+                      <p style={{ margin: 0, fontWeight: '600' }} className={`status-text ${selectedOrder.status === 'Failed' || selectedOrder.status === 'Cancelled' ? 'text-red' : (selectedOrder.status === 'Delivered' ? 'text-green' : 'text-blue')}`}>
+                        {selectedOrder.status}
+                      </p>
+                    </div>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#666' }}>Total Amount</p>
+                      <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-purple)' }}>₹{selectedOrder.totalAmount.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="order-items" style={{ marginBottom: '2rem' }}>
+                    <h4 style={{ marginBottom: '1rem', color: '#333', borderBottom: '2px dashed #eee', paddingBottom: '0.5rem' }}>Items Ordered</h4>
+                    <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {selectedOrder.items.map(item => (
-                        <li key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <span>{item.quantity}x {item.name}</span>
-                          {selectedOrder.status === 'Delivered' && !item.isBundle && (
-                            <button 
-                              className="btn-playful btn-primary"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
-                              onClick={() => setReviewItem({ productId: item._id, productName: item.name })}
-                            >
-                              Write a Review
-                            </button>
-                          )}
+                        <li key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid #eee', borderRadius: '12px', backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }}
+                            onClick={() => {
+                              const slug = item.name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+                              navigate(`/product/${slug}`);
+                            }}
+                          >
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #eee' }} />
+                            ) : (
+                              <div style={{ width: '60px', height: '60px', backgroundColor: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🧸</div>
+                            )}
+                            <div>
+                              <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>{item.name}</div>
+                              <div style={{ fontSize: '0.85rem', color: '#666' }}>Qty: <span style={{ fontWeight: '600', color: '#444' }}>{item.quantity}</span></div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                            <div style={{ fontWeight: '600', color: '#333' }}>₹{item.price}</div>
+                            {selectedOrder.status === 'Delivered' && (
+                              <button 
+                                className="btn-playful btn-primary"
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReorderItem(item);
+                                }}
+                              >
+                                <RotateCcw size={12} /> Reorder
+                              </button>
+                            )}
+                          </div>
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="order-tracking-section">
+
+                  <div style={{ marginBottom: '2rem', padding: '1.2rem', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #eee' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: '#333', borderBottom: '2px dashed #eee', paddingBottom: '0.5rem' }}>Shipping Details</h4>
+                    <p style={{ margin: '0 0 0.4rem 0', fontWeight: '600' }}>{selectedOrder.customerInfo.name}</p>
+                    <p style={{ margin: '0 0 0.4rem 0', color: '#666', lineHeight: '1.4' }}>
+                      {selectedOrder.customerInfo.address}<br />
+                      {selectedOrder.customerInfo.city} - {selectedOrder.customerInfo.pincode}
+                    </p>
+                    <p style={{ margin: '0.5rem 0 0.2rem 0', color: '#555', fontSize: '0.9rem' }}>📞 {selectedOrder.customerInfo.phone}</p>
+                    <p style={{ margin: '0', color: '#555', fontSize: '0.9rem' }}>✉️ {selectedOrder.customerInfo.email}</p>
+                  </div>
+
+                  <div className="order-tracking-section" style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #eee' }}>
+                    <h4 style={{ margin: '0 0 1.5rem 0', textAlign: 'center', color: '#333' }}>Tracking Status</h4>
                     <OrderProgressTracker status={selectedOrder.status} />
                   </div>
                 </div>
