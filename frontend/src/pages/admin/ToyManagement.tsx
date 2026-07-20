@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { Trash2, Plus, Star, Zap, Upload, X, Edit2, Save } from 'lucide-react';
+import { Trash2, Plus, Star, Zap, Upload, X, Edit2, Save, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import API_BASE from '../../config';
 
 interface Product {
@@ -146,6 +147,23 @@ const ToyManagement: React.FC = () => {
     catch (e) { console.error(e); }
   };
 
+  const exportToExcel = () => {
+    if (products.length === 0) return;
+    const dataToExport = products.map(p => ({
+      ID: p._id,
+      Name: p.name,
+      Price: p.price,
+      Category: p.category || 'Toys',
+      Featured: p.isFeatured ? 'Yes' : 'No',
+      'New Arrival': p.isNewArrival ? 'Yes' : 'No'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+    XLSX.writeFile(workbook, 'products_list.xlsx');
+  };
+
   return (
     <div className="admin-page container">
       <div className="admin-section-title" style={{ marginTop: 0 }}><span>🧸</span> Toy Management</div>
@@ -238,7 +256,12 @@ const ToyManagement: React.FC = () => {
 
         {/* Product list */}
         <div className="admin-list-container toy-management-list">
-          <h2 className="text-blue" style={{ marginBottom: '1.5rem', fontSize: '1.4rem' }}>Products Management ({products.length} items)</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 className="text-blue" style={{ fontSize: '1.4rem', margin: 0 }}>Products Management ({products.length} items)</h2>
+            <button onClick={exportToExcel} className="btn-playful btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+              <Download size={16} /> Export to Excel
+            </button>
+          </div>
           <div className="admin-product-list">
             {products.map(p => (
               <div key={p._id} className="admin-product-item-card">
