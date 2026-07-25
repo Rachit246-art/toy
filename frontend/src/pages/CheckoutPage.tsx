@@ -36,8 +36,12 @@ const CheckoutPage: React.FC = () => {
     name: user?.name || '', 
     email: user?.email || '', 
     phone: user?.phone || '', 
+    alternatePhone: '',
     address: '', 
+    locality: '',
+    landmark: '',
     city: '', 
+    state: '',
     pincode: ''
   });
 
@@ -47,8 +51,12 @@ const CheckoutPage: React.FC = () => {
         name: user.shippingAddress.name || user.name || '',
         email: user.shippingAddress.email || user.email || '',
         phone: user.shippingAddress.phone || user.phone || '',
+        alternatePhone: user.shippingAddress.alternatePhone || '',
         address: user.shippingAddress.addressLine1 || '',
+        locality: user.shippingAddress.locality || user.shippingAddress.addressLine2 || '',
+        landmark: user.shippingAddress.landmark || '',
         city: user.shippingAddress.city || '',
+        state: user.shippingAddress.state || '',
         pincode: user.shippingAddress.pincode || ''
       });
     }
@@ -172,8 +180,13 @@ const CheckoutPage: React.FC = () => {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
+            alternatePhone: formData.alternatePhone,
             addressLine1: formData.address,
+            addressLine2: formData.locality,
+            locality: formData.locality,
+            landmark: formData.landmark,
             city: formData.city,
+            state: formData.state,
             pincode: formData.pincode,
             country: 'India'
           };
@@ -203,7 +216,7 @@ const CheckoutPage: React.FC = () => {
           from_name: 'PINAKA TECHNOLOGIES S G PVT LTD',
           name: formData.name,
           email: formData.email,
-          message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city}, ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: ${method}`
+          message: `New Order Details:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nAlt Phone: ${formData.alternatePhone}\nAddress: ${formData.address}, ${formData.locality}, ${formData.landmark ? formData.landmark + ', ' : ''}${formData.city}, ${formData.state} - ${formData.pincode}\n\nItems:\n${orderDetails}\n\nTotal Amount: ₹${finalTotal}\nPayment Method: ${method}`
         })
       }).catch(err => console.error('Failed to send email notification:', err));
 
@@ -295,14 +308,31 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="input-group">
-                <label>Phone Number</label>
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="10-digit mobile number" />
+              <div className="input-row">
+                <div className="input-group">
+                  <label>Phone Number</label>
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="10-digit mobile number" />
+                </div>
+                <div className="input-group">
+                  <label>Alternate Phone (Optional)</label>
+                  <input type="tel" name="alternatePhone" value={formData.alternatePhone} onChange={handleChange} placeholder="Optional" />
+                </div>
               </div>
               
               <div className="input-group">
-                <label>Shipping Address</label>
-                <input type="text" name="address" value={formData.address} onChange={handleChange} required placeholder="House No, Street, Landmark" />
+                <label>Address Line 1 (House No, Flat, Building)</label>
+                <input type="text" name="address" value={formData.address} onChange={handleChange} required placeholder="House No, Flat, Building" />
+              </div>
+              
+              <div className="input-row">
+                <div className="input-group">
+                  <label>Address Line 2 (Street, Area, Locality)</label>
+                  <input type="text" name="locality" value={formData.locality} onChange={handleChange} required placeholder="Street, Area, Locality" />
+                </div>
+                <div className="input-group">
+                  <label>Landmark (Optional)</label>
+                  <input type="text" name="landmark" value={formData.landmark} onChange={handleChange} placeholder="e.g. Near Apollo Hospital" />
+                </div>
               </div>
               
               <div className="input-row">
@@ -311,9 +341,17 @@ const CheckoutPage: React.FC = () => {
                   <input type="text" name="city" value={formData.city} onChange={handleChange} required placeholder="e.g. Kanpur" />
                 </div>
                 <div className="input-group">
+                  <label>State</label>
+                  <input type="text" name="state" value={formData.state} onChange={handleChange} required placeholder="e.g. Uttar Pradesh" />
+                </div>
+              </div>
+
+              <div className="input-row">
+                <div className="input-group">
                   <label>Pincode</label>
                   <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} required placeholder="e.g. 208001" />
                 </div>
+                <div className="input-group"></div>
               </div>
             </div>
 

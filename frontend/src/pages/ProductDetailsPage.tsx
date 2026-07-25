@@ -51,8 +51,12 @@ const ProductDetailsPage: React.FC = () => {
   
   const [openAccordion, setOpenAccordion] = useState<string | null>('description');
 
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+
   // Review Form State
-  const [reviewName, setReviewName] = useState('');
+  const [reviewName, setReviewName] = useState(user?.name || '');
+  const [reviewEmail, setReviewEmail] = useState(user?.email || '');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHoverRating, setReviewHoverRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
@@ -121,8 +125,8 @@ const ProductDetailsPage: React.FC = () => {
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
-    if (!reviewName.trim() || reviewRating === 0 || !reviewComment.trim()) {
-      setReviewMsg('❌ Please provide a name, rating, and comment.');
+    if (!reviewName.trim() || !reviewEmail.trim() || reviewRating === 0 || !reviewComment.trim()) {
+      setReviewMsg('❌ Please provide your name, email, rating, and comment.');
       return;
     }
     
@@ -132,20 +136,20 @@ const ProductDetailsPage: React.FC = () => {
     try {
       const res = await axios.post(`${API_BASE}/api/products/${product._id}/reviews`, {
         name: reviewName,
+        email: reviewEmail,
         rating: reviewRating,
         comment: reviewComment
       });
       // Update local state with the new product data (including the new review)
       setProduct(res.data);
       // Reset form
-      setReviewName('');
       setReviewRating(0);
       setReviewComment('');
       setReviewMsg('✅ Review submitted successfully!');
       setTimeout(() => setReviewMsg(''), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setReviewMsg('❌ Failed to submit review. Please try again.');
+      setReviewMsg(`❌ ${err.response?.data?.message || 'Failed to submit review. Please try again.'}`);
     } finally {
       setSubmittingReview(false);
     }
@@ -418,7 +422,7 @@ const ProductDetailsPage: React.FC = () => {
                   <form onSubmit={handleReviewSubmit} className="review-form">
                     
                     <div className="review-form-row">
-                      <div className="review-input-group">
+                      <div className="review-input-group" style={{ flex: 1 }}>
                         <label>Your Name *</label>
                         <input 
                           type="text" 
@@ -428,6 +432,18 @@ const ProductDetailsPage: React.FC = () => {
                           required
                         />
                       </div>
+                      <div className="review-input-group" style={{ flex: 1, marginLeft: '1rem' }}>
+                        <label>Your Email *</label>
+                        <input 
+                          type="email" 
+                          placeholder="papa@bear.com"
+                          value={reviewEmail}
+                          onChange={e => setReviewEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="review-form-row">
                       <div className="review-input-group rating-group">
                         <label>Your Rating *</label>
                         <div className="interactive-stars">

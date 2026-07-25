@@ -44,6 +44,13 @@ const Footer: React.FC = () => {
               <li><button onClick={() => navigate('/about')}>🌈 About Us</button></li>
               <li><button onClick={() => navigate('/contact')}>💌 Contact</button></li>
               <li><button onClick={() => navigate('/privacy-policy')}>🔒 Privacy Policy</button></li>
+              <li><button onClick={() => navigate('/terms-conditions')}>📜 Terms & Conditions</button></li>
+              <li><button onClick={() => navigate('/shipping-policy')}>🚚 Shipping Policy</button></li>
+              <li><button onClick={() => navigate('/return-policy')}>🔄 Return Policy</button></li>
+              <li><button onClick={() => navigate('/payment-policy')}>💳 Payment Policy</button></li>
+              <li><button onClick={() => navigate('/personalized-product-policy')}>🎨 Personalized Policy</button></li>
+              <li><button onClick={() => navigate('/disclaimer')}>⚠️ Disclaimer</button></li>
+              <li><button onClick={() => navigate('/cookie-policy')}>🍪 Cookie Policy</button></li>
             </ul>
           </div>
 

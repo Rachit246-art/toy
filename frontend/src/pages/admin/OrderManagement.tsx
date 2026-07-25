@@ -4,7 +4,7 @@ import API_BASE from '../../config';
 
 interface Order {
   _id: string;
-  customerInfo: { name: string; email: string; phone: string; address: string; city: string; pincode: string };
+  customerInfo: { name: string; email: string; phone: string; alternatePhone?: string; address: string; locality?: string; landmark?: string; city: string; state?: string; pincode: string };
   items: { _id: string; name: string; price: string; quantity: number; imageUrl: string }[];
   totalAmount: number;
   status: string;
@@ -30,10 +30,24 @@ const OrderManagement: React.FC = () => {
     fetchOrders();
   }, []);
 
-  const updateOrderStatus = async (id: string, newStatus: string) => {
+  const updateOrderStatus = async (id: string, newStatus: string, order: Order) => {
     try { 
       await axios.patch(`${API_BASE}/api/orders/${id}/status`, { status: newStatus }, authHeader()); 
       fetchOrders(); 
+      
+      // Redirect to WhatsApp with pre-filled message
+      let phone = order.customerInfo.phone.replace(/[^0-9+]/g, '');
+      if (phone.length === 10 && !phone.startsWith('+')) {
+        phone = '91' + phone; // Default to India code if just 10 digits
+      } else if (phone.startsWith('+')) {
+        phone = phone.substring(1); // wa.me requires phone number without +
+      }
+      
+      const orderNumber = order.orderId || order._id.slice(-6).toUpperCase();
+      const checkStatusLink = `${window.location.origin}/my-orders`;
+      const message = `Hi ${order.customerInfo.name},\n\nThe status of your Pigglitz order #${orderNumber} has been updated to: *${newStatus}*.\n\nYou can check your order status here: ${checkStatusLink}`;
+      
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
     } catch (e) { console.error(e); }
   };
 
@@ -97,8 +111,18 @@ const OrderManagement: React.FC = () => {
                     </td>
                     <td>
                       <strong>{o.customerInfo.name}</strong>
-                      <div className="table-subtext">{o.customerInfo.phone}</div>
-                      <div className="table-subtext">{o.customerInfo.address}, {o.customerInfo.city} - {o.customerInfo.pincode}</div>
+                      <div className="table-subtext">
+                        {o.customerInfo.phone}
+                        {o.customerInfo.alternatePhone && ` / ${o.customerInfo.alternatePhone}`}
+                      </div>
+                      <div className="table-subtext">
+                        {o.customerInfo.address}
+                        {o.customerInfo.locality && `, ${o.customerInfo.locality}`}
+                        {o.customerInfo.landmark && ` (Near ${o.customerInfo.landmark})`}
+                        <br />
+                        {o.customerInfo.city}
+                        {o.customerInfo.state && `, ${o.customerInfo.state}`} - {o.customerInfo.pincode}
+                      </div>
                     </td>
                     <td>
                       <div className="table-items-list">
@@ -117,7 +141,7 @@ const OrderManagement: React.FC = () => {
                         <select 
                           className={`status-select status-${o.status.replace(/\s+/g, '-').toLowerCase()}`}
                           value={o.status} 
-                          onChange={(e) => updateOrderStatus(o._id, e.target.value)}
+                          onChange={(e) => updateOrderStatus(o._id, e.target.value, o)}
                           style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #ccc' }}
                         >
                           <option value="Order Placed">Order Placed</option>

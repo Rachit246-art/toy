@@ -26,6 +26,13 @@ import CheckoutPage from './pages/CheckoutPage';
 import UserDashboard from './pages/UserDashboard';
 import BundlePage from './pages/BundlePage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
+import ShippingPolicy from './pages/ShippingPolicy';
+import ReturnPolicy from './pages/ReturnPolicy';
+import PaymentPolicy from './pages/PaymentPolicy';
+import PersonalizedProductPolicy from './pages/PersonalizedProductPolicy';
+import Disclaimer from './pages/Disclaimer';
+import CookiePolicy from './pages/CookiePolicy';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import CursorSprinkles from './components/CursorSprinkles';
@@ -68,6 +75,13 @@ function App() {
               <Route path="/profile" element={<UserDashboard />} />
               <Route path="/bundle" element={<BundlePage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/shipping-policy" element={<ShippingPolicy />} />
+              <Route path="/return-policy" element={<ReturnPolicy />} />
+              <Route path="/payment-policy" element={<PaymentPolicy />} />
+              <Route path="/personalized-product-policy" element={<PersonalizedProductPolicy />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/blog/:id" element={<BlogPostPage />} />
             </Routes>

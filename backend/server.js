@@ -102,6 +102,7 @@ const uploadSlide = multer({ storage: slideStorage });
 // Models
 const ReviewSchema = new mongoose.Schema({
   name:     { type: String, required: true },
+  email:    { type: String, required: true },
   rating:   { type: Number, required: true, min: 1, max: 5 },
   comment:  { type: String, required: true },
   createdAt:{ type: Date, default: Date.now }
@@ -147,7 +148,9 @@ const AddressSchema = new mongoose.Schema({
   pincode: { type: String, default: '' },
   country: { type: String, default: 'India' },
   phone: { type: String, default: '' },
-  email: { type: String, default: '' }
+  email: { type: String, default: '' },
+  alternatePhone: { type: String, default: '' },
+  landmark: { type: String, default: '' }
 }, { _id: false });
 
 const UserSchema = new mongoose.Schema({
@@ -206,8 +209,12 @@ const OrderSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
+    alternatePhone: { type: String, default: '' },
     address: { type: String, required: true },
+    locality: { type: String, required: true },
+    landmark: { type: String, default: '' },
     city: { type: String, required: true },
+    state: { type: String, required: true },
     pincode: { type: String, required: true }
   },
   items: [{
@@ -635,16 +642,36 @@ app.get('/api/products/:id', async (req, res) => {
 // 7c. Add Review Route (Public)
 app.post('/api/products/:id/reviews', async (req, res) => {
   try {
-    const { name, rating, comment } = req.body;
-    if (!name || !rating || !comment) {
-      return res.status(400).json({ message: 'Please provide name, rating, and comment.' });
+    const { name, email, rating, comment } = req.body;
+    if (!name || !email || !rating || !comment) {
+      return res.status(400).json({ message: 'Please provide name, email, rating, and comment.' });
     }
     
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     
+    // Check if user already reviewed
+    const alreadyReviewed = product.reviews.find(
+      (r) => r.email.toLowerCase() === email.toLowerCase()
+    );
+    if (alreadyReviewed) {
+      return res.status(400).json({ message: 'You have already reviewed this product.' });
+    }
+
+    // Check if user purchased the product
+    const order = await Order.findOne({
+      'customerInfo.email': { $regex: new RegExp(`^${email}$`, 'i') },
+      'items._id': req.params.id,
+      status: { $ne: 'Pending' } // Optionally ensure it's not just an abandoned checkout
+    });
+
+    if (!order) {
+      return res.status(400).json({ message: 'You can only review products you have purchased.' });
+    }
+    
     const review = {
       name,
+      email,
       rating: Number(rating),
       comment
     };
@@ -1062,7 +1089,7 @@ app.patch('/api/orders/:id/status', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
   try {
     const { status } = req.body;
-    const validStatuses = ['Pending', 'Shipped', 'Delivered'];
+    const validStatuses = ['Pending', 'Shipped', 'Delivered', 'Order Placed', 'In Transit', 'Out for Delivery'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }

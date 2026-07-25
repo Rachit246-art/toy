@@ -216,6 +216,7 @@ const UserDashboard: React.FC = () => {
     try {
       await axios.post(`${API_BASE}/api/products/${reviewItem.productId}/reviews`, {
         name: userData.name,
+        email: userData.email,
         rating,
         comment
       });
