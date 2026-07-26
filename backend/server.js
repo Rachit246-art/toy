@@ -21,17 +21,22 @@ const allowedOrigins = [
   'https://toy-git-main-rachit246-arts-projects.vercel.app',
   'https://toy-e0h25coer-rachit246-arts-projects.vercel.app',
   'https://orange-wolverine-290055.hostingersite.com',
+  'https://pigglitz.com',
+  'https://www.pigglitz.com',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow all origins to bypass CORS issues during testing/deployment
-    callback(null, true);
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || (origin && origin.endsWith('pigglitz.com'))) {
+      callback(null, origin || '*');
+    } else {
+      callback(null, origin); // fallback to allow all but with explicit origin
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
 }));
 
 app.use(express.json());
