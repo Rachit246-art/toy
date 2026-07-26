@@ -39,6 +39,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
 }));
 
+// Prevent Hostinger CDN from caching API responses and breaking dynamic CORS headers
+app.use((req, res, next) => {
+  res.setHeader('Vary', 'Origin');
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 app.use(express.json());
 
 const PORT       = process.env.PORT        || 5000;
