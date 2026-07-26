@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Forward API requests to PHP proxy script (bypasses CORS and Hostinger WAF)
+  RewriteRule ^api/(.*)$ api_proxy.php?path=$1 [L,QSA]
   
   # Forward sitemap.xml to PHP proxy script (Hostinger Shared Hosting compatible)
   RewriteRule ^sitemap\.xml$ sitemap.php [L]
