@@ -44,10 +44,14 @@ const HeroBannersManagement: React.FC = () => {
 
   const handleAddHeroSlide = async (e: React.FormEvent) => {
     e.preventDefault(); setSlideMsg('');
+    if (!slideImageFile) {
+      setSlideMsg('❌ Please select a banner image before adding.');
+      return;
+    }
     try {
       const fd = new FormData();
       fd.append('buttonLink', slideBtnLink);
-      if (slideImageFile) fd.append('image', slideImageFile);
+      fd.append('image', slideImageFile);
 
       await axios.post(`${API_BASE}/api/hero-slides`, fd, {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'multipart/form-data' },
@@ -110,7 +114,7 @@ const HeroBannersManagement: React.FC = () => {
               )}
               <input id="slide-image-input" ref={slideFileRef} type="file" accept="image/*"
                 onChange={e => { const f=e.target.files?.[0]; if(f){setSlideImageFile(f);setSlideImagePreview(URL.createObjectURL(f));} }}
-                style={{ display:'none' }} required />
+                style={{ display:'none' }} />
             </div>
 
             <button type="submit" className="btn-playful btn-primary" style={{ marginTop: '1rem' }}>
