@@ -356,9 +356,7 @@ const ProductDetailsPage: React.FC = () => {
             <div className={`accordion-content ${openAccordion === 'description' ? 'open' : ''}`}>
               <div className="accordion-inner-content">
                 {product.description ? (
-                  product.description.split('\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))
+                  <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: product.description }} />
                 ) : (
                   <p>A magical toy ready to bring smiles!</p>
                 )}
@@ -375,9 +373,7 @@ const ProductDetailsPage: React.FC = () => {
             <div className={`accordion-content ${openAccordion === 'additionalInfo' ? 'open' : ''}`}>
               <div className="accordion-inner-content">
                 {product.additionalInfo ? (
-                  product.additionalInfo.split('\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))
+                  <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: product.additionalInfo }} />
                 ) : (
                   <p>No additional information available.</p>
                 )}

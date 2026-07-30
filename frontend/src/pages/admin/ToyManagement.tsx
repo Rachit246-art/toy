@@ -3,6 +3,22 @@ import axios from 'axios';
 import { Trash2, Plus, Star, Zap, Upload, X, Edit2, Save, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import API_BASE from '../../config';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    [{ 'size': ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['link', 'image', 'video'],
+    ['clean']
+  ]
+};
 
 interface Product {
   _id: string; name: string; price: string; imageColor: string;
@@ -176,8 +192,13 @@ const ToyManagement: React.FC = () => {
         <div className="admin-form-container">
           <h2 className="text-pink">Add Magic Toy</h2>
           <form onSubmit={handleAddProduct} className="admin-form">
+            <label className="field-label">Toy Name</label>
             <input type="text" placeholder="Toy Name" value={name} onChange={e => setName(e.target.value)} required className="playful-input" />
+            
+            <label className="field-label">Price</label>
             <input type="text" placeholder="Price (e.g. ₹499)" value={price} onChange={e => setPrice(e.target.value)} required className="playful-input" />
+            
+            <label className="field-label">Category</label>
             <select value={category} onChange={e => setCategory(e.target.value)} className="playful-input">
               <option value="Toys">Toys</option>
               <option value="DIY Paint Kit">DIY Paint Kit</option>
@@ -185,9 +206,20 @@ const ToyManagement: React.FC = () => {
               <option value="Collectible">Collectible</option>
             </select>
 
-            <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
+            <label className="field-label">Description</label>
+            <div style={{ marginBottom: '1rem' }}>
+              <ReactQuill theme="snow" modules={quillModules} value={description} onChange={setDescription} className="quill-editor" />
+            </div>
+            
+            <label className="field-label">Features (one per line)</label>
             <textarea placeholder="Features (one per line)" value={features} onChange={e => setFeatures(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
-            <textarea placeholder="Additional Info" value={additionalInfo} onChange={e => setAdditionalInfo(e.target.value)} className="playful-input" style={{minHeight:'80px'}} />
+            
+            <label className="field-label">Additional Info</label>
+            <div style={{ marginBottom: '1rem' }}>
+              <ReactQuill theme="snow" modules={quillModules} value={additionalInfo} onChange={setAdditionalInfo} className="quill-editor" />
+            </div>
+            
+            <label className="field-label">3D Print Models / Dimensions</label>
             <textarea placeholder="3D Print Models / Dimensions" value={models} onChange={e => setModels(e.target.value)} className="playful-input" style={{ minHeight:'60px' }}/>
             
             <label className="field-label">SEO Keywords (Comma separated)</label>
@@ -236,6 +268,7 @@ const ToyManagement: React.FC = () => {
               <span className="color-preview" style={{ background: imageColor }} />
             </div>
 
+            <label className="field-label">Badge</label>
             <input type="text" placeholder="Badge (e.g. Best Seller)" value={badge}
               onChange={e => setBadge(e.target.value)} className="playful-input" />
 
@@ -343,8 +376,13 @@ const ToyManagement: React.FC = () => {
               <button className="edit-modal-close" onClick={() => setEditingProduct(null)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSaveEdit} className="admin-form">
+              <label className="field-label">Toy Name</label>
               <input type="text" placeholder="Toy Name" value={eName} onChange={e => setEName(e.target.value)} required className="playful-input" />
+              
+              <label className="field-label">Price</label>
               <input type="text" placeholder="Price (e.g. ₹499)" value={ePrice} onChange={e => setEPrice(e.target.value)} required className="playful-input" />
+              
+              <label className="field-label">Category</label>
               <select value={eCategory} onChange={e => setECategory(e.target.value)} className="playful-input">
                 <option value="Toys">Toys</option>
                 <option value="DIY Paint Kit">DIY Paint Kit</option>
@@ -352,9 +390,18 @@ const ToyManagement: React.FC = () => {
                 <option value="Collectible">Collectible</option>
               </select>
               
-              <textarea placeholder="Description" value={eDescription} onChange={e => setEDescription(e.target.value)} className="playful-input" />
+              <label className="field-label">Description</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <ReactQuill theme="snow" modules={quillModules} value={eDescription} onChange={setEDescription} className="quill-editor" />
+              </div>
+              
+              <label className="field-label">Features</label>
               <textarea placeholder="Features (one per line)" value={eFeatures} onChange={e => setEFeatures(e.target.value)} className="playful-input" />
-              <textarea placeholder="Additional Info" value={eAdditionalInfo} onChange={e => setEAdditionalInfo(e.target.value)} className="playful-input" />
+              
+              <label className="field-label">Additional Info</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <ReactQuill theme="snow" modules={quillModules} value={eAdditionalInfo} onChange={setEAdditionalInfo} className="quill-editor" />
+              </div>
               
               <label className="field-label">Models/Dimensions</label>
               <textarea value={editModels} onChange={e => setEditModels(e.target.value)} className="playful-input" style={{minHeight:'60px'}}/>
@@ -398,6 +445,7 @@ const ToyManagement: React.FC = () => {
                 <span className="color-preview" style={{ background: eColor }} />
               </div>
 
+              <label className="field-label">Badge</label>
               <input type="text" placeholder="Badge" value={eBadge} onChange={e => setEBadge(e.target.value)} className="playful-input" />
 
               <div className="flag-toggles">

@@ -130,3 +130,47 @@ img { max-width: 100%; display: block; }
   background-color: #FFF5F8;
   border-top: 4px dashed var(--color-pink);
 }
+
+/* ─── React Quill overrides ─── */
+.quill-editor {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #eee;
+}
+.quill-editor .ql-toolbar {
+  border: none !important;
+  border-bottom: 2px solid #eee !important;
+  background-color: #fafafa;
+}
+.quill-editor .ql-container {
+  border: none !important;
+  min-height: 120px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+/* ─── Rich Text Render ─── */
+.rich-text-content p {
+  margin-bottom: 0.8rem;
+}
+.rich-text-content ul {
+  list-style: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+.rich-text-content ol {
+  list-style: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+.rich-text-content h1, 
+.rich-text-content h2, 
+.rich-text-content h3, 
+.rich-text-content h4, 
+.rich-text-content h5, 
+.rich-text-content h6 {
+  margin-top: 1.2rem;
+  margin-bottom: 0.6rem;
+  font-weight: bold;
+}
